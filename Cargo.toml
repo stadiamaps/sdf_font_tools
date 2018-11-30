@@ -1,6 +1,6 @@
 [package]
 name = "pbf_font_tools"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Ian Wagner <ian@stadiamaps.com>"]
 license = "BSD-3-Clause"
 repository = "https://github.com/stadiamaps/pbf_font_tools"
@@ -10,4 +10,4 @@ description = "Tools for working with SDF font glyphs in PBF format."
 [dependencies]
 protobuf = "2.2.0"
 futures = "0.1.25"
-tokio = "0.1.11"
+tokio = "0.1.13"

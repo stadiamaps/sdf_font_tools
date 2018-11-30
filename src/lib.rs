@@ -99,8 +99,7 @@ pub fn combine_glyphs(data: Vec<glyphs::glyphs>) -> Option<glyphs::glyphs> {
             if !combined_stack.has_name() {
                 combined_stack.set_name(String::from(font_stack.get_name()));
             } else {
-                let local_stack = combined_stack.clone();
-                let stack_name = local_stack.get_name();
+                let stack_name = combined_stack.get_name().to_owned();
                 let this_name = font_stack.get_name();
                 combined_stack.set_name(format!("{}, {}", stack_name, this_name));
             }
