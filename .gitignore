@@ -1,6 +1,7 @@
 /target
 **/*.rs.bk
 Cargo.lock
+src/glyphs.rs
 
 # Created by https://www.gitignore.io/api/clion
 # Edit at https://www.gitignore.io/?templates=clion
