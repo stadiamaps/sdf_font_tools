@@ -20,7 +20,9 @@ use futures::future::try_join_all;
 use tokio::fs::File;
 use tokio::io::AsyncReadExt;
 
-mod glyphs;
+mod proto;
+
+use proto::glyphs;
 
 type GlyphResult = Result<glyphs::glyphs, protobuf::ProtobufError>;
 
