@@ -1,6 +1,6 @@
 [package]
 name = "pbf_font_tools"
-version = "0.2.1"
+version = "0.2.2"
 authors = ["Ian Wagner <ian@stadiamaps.com>"]
 license = "BSD-3-Clause"
 repository = "https://github.com/stadiamaps/pbf_font_tools"
@@ -12,7 +12,7 @@ edition = "2018"
 
 [dependencies]
 futures = "~0.3"
-protobuf = "~2.15"
+protobuf = "~2.16"
 
 [dependencies.tokio]
 version = "~0.2"
@@ -20,7 +20,7 @@ features = ["fs"]
 
 [build-dependencies]
 glob = "~0.3"
-protobuf-codegen-pure = "~2.15"
+protobuf-codegen-pure = "~2.16"
 
 [dev-dependencies.tokio]
 version = "~0.2"
