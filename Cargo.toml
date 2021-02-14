@@ -10,9 +10,12 @@ keywords = ["sdf", "protobuf", "fonts"]
 categories = ["encoding", "parsing", "rendering::data-formats"]
 edition = "2018"
 
+[features]
+freetype = ["freetype-rs", "sdf_glyph_renderer/freetype"]
+
 [dependencies]
 futures = "~0.3"
-protobuf = "~2.18"
+protobuf = "~2.20"
 
 [dependencies.tokio]
 version = "~1.0"
@@ -20,8 +23,17 @@ features = ["fs", "io-util"]
 
 [build-dependencies]
 glob = "~0.3"
-protobuf-codegen-pure = "~2.18"
+protobuf-codegen-pure = "~2.20"
 
 [dev-dependencies.tokio]
 version = "~1.0"
 features = ["fs", "io-util", "macros", "rt"]
+
+[dependencies.freetype-rs]
+version = "~0.26"
+optional = true
+
+# TODO: Use crates.io when published
+[dependencies.sdf_glyph_renderer]
+git = "ssh://git@github.com/stadiamaps/sdf_glyph_renderer"
+branch = "main"

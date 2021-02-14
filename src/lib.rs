@@ -10,8 +10,6 @@
 //!   * https://github.com/mapbox/glyph-pbf-composite
 //!   * https://github.com/klokantech/tileserver-gl/blob/master/src/utils.js
 
-#![deny(warnings)]
-
 use std::collections::HashSet;
 use std::path::Path;
 
@@ -20,9 +18,13 @@ use futures::future::try_join_all;
 use tokio::fs::File;
 use tokio::io::AsyncReadExt;
 
+#[cfg(feature = "freetype")]
+pub mod generate;
+
 mod proto;
 
-use proto::glyphs;
+pub use proto::glyphs;
+use protobuf::Message;
 
 type GlyphResult = Result<glyphs::glyphs, protobuf::ProtobufError>;
 
@@ -75,7 +77,7 @@ pub async fn load_glyphs(font_path: &Path, font_name: &str, start: u32, end: u32
     let mut buf = Vec::new();
 
     file.read_to_end(&mut buf).await?;
-    protobuf::parse_from_bytes(&buf)
+    Message::parse_from_bytes(&buf)
 }
 
 /// Combines a list of SDF font glyphs into a single glyphs message.
