@@ -1,0 +1,21 @@
+[package]
+name = "sdf_glyph_renderer"
+version = "0.1.0"
+authors = ["Ian Wagner <ian@stadiamaps.com>"]
+license = "BSD-3-Clause"
+repository = "https://github.com/stadiamaps/sdf_glyph_renderer"
+readme = "README.md"
+description = "Tools for generating SDF font glyphs from bitmap images."
+keywords = ["sdf", "fonts", "glyphs", "graphics"]
+categories = ["algorithms", "encoding", "parsing", "rendering::data-formats"]
+edition = "2018"
+
+[features]
+freetype = ["freetype-rs"]
+
+[dependencies]
+derive-error = "~0.0"
+
+[dependencies.freetype-rs]
+version = "~0.26"
+optional = true
