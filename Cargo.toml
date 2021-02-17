@@ -33,7 +33,6 @@ features = ["fs", "io-util", "macros", "rt"]
 version = "~0.26"
 optional = true
 
-# TODO: Use crates.io when published
 [dependencies.sdf_glyph_renderer]
-git = "ssh://git@github.com/stadiamaps/sdf_glyph_renderer"
-branch = "main"
+version = "~0.1"
+optional = true
