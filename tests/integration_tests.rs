@@ -113,6 +113,18 @@ async fn test_glyph_generation() {
         .iter()
         .zip(fixture_stack.get_glyphs())
     {
-        assert_eq!(glyph, fixture);
+        assert_eq!(glyph.get_id(), fixture.get_id());
+        assert_eq!(glyph.get_width(), fixture.get_width());
+        assert_eq!(glyph.get_height(), fixture.get_height());
+        assert_eq!(glyph.get_left(), fixture.get_left());
+        assert_eq!(glyph.get_top(), fixture.get_top());
+        assert_eq!(glyph.get_bitmap().len(), fixture.get_bitmap().len());
+        let errors: i32 = glyph.get_bitmap().iter().zip(fixture.get_bitmap().iter()).map(|(x, y)| {
+            (*x as i32 - *y as i32).abs()
+        }).sum();
+
+        // There may be extremely minor differences between FreeType library versions
+        // in how the glyph bitmaps are generated.
+        assert!(errors < 2);
     }
 }
