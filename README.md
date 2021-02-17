@@ -1,5 +1,7 @@
 # SDF Glyph Renderer
 
+[![](https://img.shields.io/crates/v/sdf_glyph_renderer.svg)](https://crates.io/crates/sdf_glyph_renderer) [![](https://docs.rs/sdf_glyph_renderer/badge.svg)](https://docs.rs/sdf_glyph_renderer)
+
 This crate is a Rust implementation of the signed distance field generation techniques
 demonstrated by [Valve](https://steamcdn-a.akamaihd.net/apps/valve/2007/SIGGRAPH2007_AlphaTestedMagnification.pdf)
 and [Mapbox](https://blog.mapbox.com/drawing-text-with-signed-distance-fields-in-mapbox-gl-b0933af6f817).
