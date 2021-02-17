@@ -6,8 +6,8 @@ license = "BSD-3-Clause"
 repository = "https://github.com/stadiamaps/sdf_glyph_renderer"
 readme = "README.md"
 description = "Tools for generating SDF font glyphs from bitmap images."
-keywords = ["sdf", "fonts", "glyphs", "graphics"]
-categories = ["algorithms", "encoding", "parsing", "rendering::data-formats"]
+keywords = ["sdf", "fonts", "glyphs"]
+categories = ["rendering::data-formats", "graphics", "algorithms", "encoding"]
 edition = "2018"
 
 [features]
