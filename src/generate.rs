@@ -69,10 +69,12 @@ pub fn glyph_range_for_face(
             match result {
                 Ok(glyph) => {
                     stack.mut_glyphs().push(glyph);
-                },
-                Err(sdf_glyph_renderer::Error::FreeTypeError(freetype::Error::InvalidGlyphIndex)) => {
+                }
+                Err(sdf_glyph_renderer::Error::FreeTypeError(
+                    freetype::Error::InvalidGlyphIndex,
+                )) => {
                     // Do nothing; not all glyphs will be present in a font.
-                },
+                }
                 Err(e) => {
                     return Err(e);
                 }

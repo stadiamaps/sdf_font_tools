@@ -96,7 +96,8 @@ async fn test_glyph_generation() {
     let font_name = "Open Sans Light";
     let otf_path = font_path.join(font_name).join(format!("{}.ttf", font_name));
     let rendered_glyphs =
-        pbf_font_tools::generate::glyph_range_for_font(&*otf_path, 0, 255, 24, 8, 0.25).expect("Unable to render glyphs");
+        pbf_font_tools::generate::glyph_range_for_font(&*otf_path, 0, 255, 24, 8, 0.25)
+            .expect("Unable to render glyphs");
     let fixture_glyphs = pbf_font_tools::load_glyphs(font_path.as_path(), font_name, 0, 255)
         .await
         .expect("Unable to load fixtures");
@@ -113,18 +114,6 @@ async fn test_glyph_generation() {
         .iter()
         .zip(fixture_stack.get_glyphs())
     {
-        assert_eq!(glyph.get_id(), fixture.get_id());
-        assert_eq!(glyph.get_width(), fixture.get_width());
-        assert_eq!(glyph.get_height(), fixture.get_height());
-        assert_eq!(glyph.get_left(), fixture.get_left());
-        assert_eq!(glyph.get_top(), fixture.get_top());
-        assert_eq!(glyph.get_bitmap().len(), fixture.get_bitmap().len());
-        let errors: i32 = glyph.get_bitmap().iter().zip(fixture.get_bitmap().iter()).map(|(x, y)| {
-            (*x as i32 - *y as i32).abs()
-        }).sum();
-
-        // There may be extremely minor differences between FreeType library versions
-        // in how the glyph bitmaps are generated.
-        assert!(errors < 2);
+        assert_eq!(glyph, fixture);
     }
 }
