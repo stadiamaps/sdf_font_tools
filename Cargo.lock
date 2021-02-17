@@ -260,7 +260,7 @@ checksum = "13bd41f508810a131401606d54ac32a467c97172d74ba7662562ebba5ad07fa0"
 [[package]]
 name = "pbf_font_tools"
 version = "1.0.0"
-source = "git+ssh://git@github.com/stadiamaps/pbf_font_tools?branch=glyph-generation#47fa595ca43f4b8fcbf3a3c83a616e8672bb994b"
+source = "git+http://github.com/stadiamaps/pbf_font_tools?branch=glyph-generation#47fa595ca43f4b8fcbf3a3c83a616e8672bb994b"
 dependencies = [
  "freetype-rs",
  "futures",
