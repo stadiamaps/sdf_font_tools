@@ -63,7 +63,7 @@ pub struct BitmapGlyph {
     height: usize,
 
     /// The number of pixels buffering the glyph on all sides. You can add a buffer to a
-    /// raw bitmap using the [`from_unbuffered`] constructor.
+    /// raw bitmap using the [`Self::from_unbuffered()`] constructor.
     buffer: usize,
 }
 
@@ -72,7 +72,7 @@ impl BitmapGlyph {
     ///
     /// This constructor is useful when you already have a buffered glyph. If you have the alpha
     /// bitmap but still need to buffer it (what you expect from most font renderers, for example),
-    /// use [`from_unbuffered`] instead.
+    /// use [`Self::from_unbuffered()`] instead.
     ///
     /// # Panics
     ///
