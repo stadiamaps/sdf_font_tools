@@ -1,6 +1,6 @@
 [package]
 name = "sdf_glyph_renderer"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Ian Wagner <ian@stadiamaps.com>"]
 license = "BSD-3-Clause"
 repository = "https://github.com/stadiamaps/sdf_glyph_renderer"
