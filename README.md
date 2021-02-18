@@ -10,7 +10,7 @@ like Mapbox GL.
 * Combine multiple glyphs from multiple fonts into a single stack. 
 * Generate glyphs from a TrueType/OpenType font.
 
-If you're looking for a CLI tool to generate PBF ranges en mass like
+If you're looking for a CLI tool to generate PBF ranges en masse like
 [node-fontnik](https://github.com/mapbox/node-fontnik)), but faster,
 check out [build_pbf_glyphs](https://github.com/stadiamaps/build_pbf_glyphs).
 
