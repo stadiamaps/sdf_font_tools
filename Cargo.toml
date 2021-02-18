@@ -18,6 +18,5 @@ protobuf = "~2.20"
 spmc = "~0.3"
 
 [dependencies.pbf_font_tools]
-git = "https://github.com/stadiamaps/pbf_font_tools"
-branch = "glyph-generation"
+version = "~1.0"
 features = ["freetype"]

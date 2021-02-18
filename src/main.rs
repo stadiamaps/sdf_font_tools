@@ -1,4 +1,3 @@
-use pbf_font_tools;
 use std::fs::{create_dir_all, read_dir, File};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -48,9 +47,7 @@ fn worker(
         while start < 65536 {
             let mut glyphs = pbf_font_tools::glyphs::glyphs::new();
 
-            for face_index in 0..num_faces {
-                let face = &faces[face_index];
-
+            for (face_index, face) in faces.iter().enumerate() {
                 if let Ok(stack) = pbf_font_tools::generate::glyph_range_for_face(
                     face, start, end, 24, radius, cutoff,
                 ) {
