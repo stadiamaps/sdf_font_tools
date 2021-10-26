@@ -24,22 +24,16 @@ async fn test_load_glyphs() {
 #[tokio::test]
 async fn test_get_font_stack() {
     let font_path = Path::new("tests").join("glyphs");
-    let font_names = vec![
-        String::from("SeoulNamsan L"),
-        String::from("Open Sans Light"),
-    ];
+    let font_names = vec!["SeoulNamsan L", "Open Sans Light"];
 
-    let namsan_font_future =
-        pbf_font_tools::load_glyphs(font_path.as_path(), "SeoulNamsan L", 0, 255);
+    let namsan_font = pbf_font_tools::load_glyphs(font_path.as_path(), "SeoulNamsan L", 0, 255);
 
-    let open_sans_font_future =
+    let open_sans_font =
         pbf_font_tools::load_glyphs(font_path.as_path(), "Open Sans Light", 0, 255);
 
-    let font_stack_fut = pbf_font_tools::get_font_stack(font_path.as_path(), font_names, 0, 255);
+    let font_stack = pbf_font_tools::get_font_stack(font_path.as_path(), &font_names, 0, 255);
 
-    let result = join3(namsan_font_future, open_sans_font_future, font_stack_fut).await;
-
-    match result {
+    match join3(namsan_font, open_sans_font, font_stack).await {
         (Ok(namsan_glyphs), Ok(open_sans_glyphs), Ok(combined_glyphs)) => {
             // Make sure we have a font stack, and that it has the expected name
             // and glyph count.
