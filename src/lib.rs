@@ -10,21 +10,17 @@
 //!   * https://github.com/mapbox/glyph-pbf-composite
 //!   * https://github.com/klokantech/tileserver-gl/blob/master/src/utils.js
 
-use std::collections::HashSet;
-use std::path::Path;
+pub use proto::glyphs;
 
 use futures::future::try_join_all;
-
-use tokio::fs::File;
-use tokio::io::AsyncReadExt;
+use protobuf::Message;
+use std::{collections::HashSet, fs::File, path::Path};
+use tokio::task::spawn_blocking;
 
 #[cfg(feature = "freetype")]
 pub mod generate;
 
 mod proto;
-
-pub use proto::glyphs;
-use protobuf::Message;
 
 type GlyphResult = Result<glyphs::glyphs, protobuf::ProtobufError>;
 
@@ -35,35 +31,34 @@ type GlyphResult = Result<glyphs::glyphs, protobuf::ProtobufError>;
 /// even if the loaded range is empty for a given font.
 pub async fn get_font_stack(
     font_path: &Path,
-    font_names: Vec<String>,
+    font_names: &[&str],
     start: u32,
     end: u32,
 ) -> GlyphResult {
-    // Load fonts (futures)
-    let mut load_futures: Vec<_> = vec![];
-    for font in font_names.iter() {
-        load_futures.push(load_glyphs(font_path, font, start, end));
-    }
+    // Load fonts
+    let glyph_data = try_join_all(
+        font_names
+            .iter()
+            .map(|font| load_glyphs(font_path, font, start, end)),
+    )
+    .await?;
 
     // Combine all the glyphs into a single instance, using the ordering to determine priority.
-    match try_join_all(load_futures).await {
-        Ok(data) => {
-            if let Some(result) = combine_glyphs(data) {
-                Ok(result)
-            } else {
-                // Construct an empty message manually if the range is not covered
-                let mut result = glyphs::glyphs::new();
+    // This can take some time, so mark it blocking.
+    Ok(spawn_blocking(move || combine_glyphs(glyph_data))
+        .await
+        .unwrap() // Unwrap any panics.
+        .unwrap_or_else(|| {
+            // Construct an empty message manually if the range is not covered
+            let mut result = glyphs::glyphs::new();
 
-                let mut stack = glyphs::fontstack::new();
-                stack.set_name(font_names.join(", "));
-                stack.set_range(format!("{}-{}", start, end));
+            let mut stack = glyphs::fontstack::new();
+            stack.set_name(font_names.join(", "));
+            stack.set_range(format!("{}-{}", start, end));
 
-                result.mut_stacks().push(stack);
-                Ok(result)
-            }
-        }
-        Err(e) => Err(e),
-    }
+            result.mut_stacks().push(stack);
+            result
+        }))
 }
 
 /// Loads a single font PBF slice from disk.
@@ -73,11 +68,15 @@ pub async fn load_glyphs(font_path: &Path, font_name: &str, start: u32, end: u32
     let full_path = font_path
         .join(font_name)
         .join(format!("{}-{}.pbf", start, end));
-    let mut file = File::open(full_path).await?;
-    let mut buf = Vec::new();
 
-    file.read_to_end(&mut buf).await?;
-    Message::parse_from_bytes(&buf)
+    // Note: Counter-intuitively, it's much faster to use blocking IO with `spawn_blocking` here,
+    // since the `Message::parse_` call will block as well.
+    spawn_blocking(|| {
+        let mut file = File::open(full_path)?;
+        Message::parse_from_reader(&mut file)
+    })
+    .await
+    .unwrap() // Unwrap any panics.
 }
 
 /// Combines a list of SDF font glyphs into a single glyphs message.
@@ -87,32 +86,32 @@ pub async fn load_glyphs(font_path: &Path, font_name: &str, start: u32, end: u32
 ///
 /// NOTE: This returns `None` if there are no glyphs in the range. If you need to
 /// construct an empty message, the responsibility lies with the caller.
-pub fn combine_glyphs(data: Vec<glyphs::glyphs>) -> Option<glyphs::glyphs> {
+pub fn combine_glyphs(glyphs_to_combine: Vec<glyphs::glyphs>) -> Option<glyphs::glyphs> {
     let mut result = glyphs::glyphs::new();
     let mut combined_stack = glyphs::fontstack::new();
     let mut coverage: HashSet<u32> = HashSet::new();
 
-    for glyph_stack in data {
-        for font_stack in glyph_stack.get_stacks() {
+    for mut glyph_stack in glyphs_to_combine {
+        for mut font_stack in glyph_stack.take_stacks() {
             if !combined_stack.has_name() {
-                combined_stack.set_name(String::from(font_stack.get_name()));
+                combined_stack.set_name(font_stack.take_name());
             } else {
-                let stack_name = combined_stack.get_name().to_owned();
-                let this_name = font_stack.get_name();
-                combined_stack.set_name(format!("{}, {}", stack_name, this_name));
+                let name = combined_stack.mut_name();
+                name.push_str(", ");
+                name.push_str(font_stack.get_name());
             }
 
-            for glyph in font_stack.get_glyphs() {
+            for glyph in font_stack.take_glyphs() {
                 if !coverage.contains(&glyph.get_id()) {
                     coverage.insert(glyph.get_id());
-                    combined_stack.mut_glyphs().push(glyph.to_owned());
+                    combined_stack.mut_glyphs().push(glyph);
                 }
             }
         }
     }
 
     let start = coverage.iter().min()?;
-    let end = coverage.iter().min()?;
+    let end = coverage.iter().max()?;
 
     combined_stack.set_range(format!("{}-{}", start, end));
 
