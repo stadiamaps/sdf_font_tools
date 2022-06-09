@@ -1,7 +1,7 @@
 [package]
 name = "sdf_glyph_renderer"
-version = "0.2.0"
-authors = ["Ian Wagner <ian@stadiamaps.com>"]
+version = "0.3.0"
+authors = ["Ian Wagner <ian@stadiamaps.com>", "Luke Seelenbinder <luke@stadiamaps.com>"]
 license = "BSD-3-Clause"
 repository = "https://github.com/stadiamaps/sdf_glyph_renderer"
 readme = "README.md"
@@ -17,5 +17,5 @@ freetype = ["freetype-rs"]
 derive-error = "0.0.5"
 
 [dependencies.freetype-rs]
-version = "0.28.0"
+version = "0.30.1"
 optional = true
