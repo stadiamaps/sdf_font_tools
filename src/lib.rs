@@ -22,7 +22,7 @@ pub mod generate;
 
 mod proto;
 
-type GlyphResult = Result<glyphs::glyphs, protobuf::ProtobufError>;
+type GlyphResult = Result<glyphs::Glyphs, protobuf::Error>;
 
 /// Generates a single combined font stack for the set of fonts provided.
 ///
@@ -50,13 +50,13 @@ pub async fn get_font_stack(
         .unwrap() // Unwrap any panics.
         .unwrap_or_else(|| {
             // Construct an empty message manually if the range is not covered
-            let mut result = glyphs::glyphs::new();
+            let mut result = glyphs::Glyphs::new();
 
-            let mut stack = glyphs::fontstack::new();
+            let mut stack = glyphs::Fontstack::new();
             stack.set_name(font_names.join(", "));
-            stack.set_range(format!("{}-{}", start, end));
+            stack.set_range(format!("{start}-{end}"));
 
-            result.mut_stacks().push(stack);
+            result.stacks.push(stack);
             result
         }))
 }
@@ -65,9 +65,7 @@ pub async fn get_font_stack(
 ///
 /// Fonts are assumed to be stored in <font_path>/<font_name>/<start>-<end>.pbf.
 pub async fn load_glyphs(font_path: &Path, font_name: &str, start: u32, end: u32) -> GlyphResult {
-    let full_path = font_path
-        .join(font_name)
-        .join(format!("{}-{}.pbf", start, end));
+    let full_path = font_path.join(font_name).join(format!("{start}-{end}.pbf"));
 
     // Note: Counter-intuitively, it's much faster to use blocking IO with `spawn_blocking` here,
     // since the `Message::parse_` call will block as well.
@@ -86,25 +84,27 @@ pub async fn load_glyphs(font_path: &Path, font_name: &str, start: u32, end: u32
 ///
 /// NOTE: This returns `None` if there are no glyphs in the range. If you need to
 /// construct an empty message, the responsibility lies with the caller.
-pub fn combine_glyphs(glyphs_to_combine: Vec<glyphs::glyphs>) -> Option<glyphs::glyphs> {
-    let mut result = glyphs::glyphs::new();
-    let mut combined_stack = glyphs::fontstack::new();
+pub fn combine_glyphs(glyphs_to_combine: Vec<glyphs::Glyphs>) -> Option<glyphs::Glyphs> {
+    let mut result = glyphs::Glyphs::new();
+    let mut combined_stack = glyphs::Fontstack::new();
     let mut coverage: HashSet<u32> = HashSet::new();
 
     for mut glyph_stack in glyphs_to_combine {
-        for mut font_stack in glyph_stack.take_stacks() {
+        for mut font_stack in glyph_stack.stacks.drain(..) {
             if !combined_stack.has_name() {
                 combined_stack.set_name(font_stack.take_name());
             } else {
                 let name = combined_stack.mut_name();
                 name.push_str(", ");
-                name.push_str(font_stack.get_name());
+                name.push_str(&font_stack.take_name());
             }
 
-            for glyph in font_stack.take_glyphs() {
-                if !coverage.contains(&glyph.get_id()) {
-                    coverage.insert(glyph.get_id());
-                    combined_stack.mut_glyphs().push(glyph);
+            for glyph in font_stack.glyphs.drain(..) {
+                if let Some(id) = glyph.id {
+                    if !coverage.contains(&id) {
+                        coverage.insert(id);
+                        combined_stack.glyphs.push(glyph);
+                    }
                 }
             }
         }
@@ -113,9 +113,9 @@ pub fn combine_glyphs(glyphs_to_combine: Vec<glyphs::glyphs>) -> Option<glyphs::
     let start = coverage.iter().min()?;
     let end = coverage.iter().max()?;
 
-    combined_stack.set_range(format!("{}-{}", start, end));
+    combined_stack.set_range(format!("{start}-{end}"));
 
-    result.mut_stacks().push(combined_stack);
+    result.stacks.push(combined_stack);
 
     Some(result)
 }
