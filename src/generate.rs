@@ -10,10 +10,10 @@ fn render_sdf_glyph(
     buffer: usize,
     radius: usize,
     cutoff: f64,
-) -> Result<glyphs::glyph, sdf_glyph_renderer::Error> {
+) -> Result<glyphs::Glyph, sdf_glyph_renderer::Error> {
     let glyph = render_sdf_from_face(face, char_code, buffer, radius)?;
 
-    let mut result = glyphs::glyph::new();
+    let mut result = glyphs::Glyph::new();
     result.set_id(char_code);
     result.set_bitmap(clamp_to_u8(&glyph.sdf, cutoff));
     result.set_width(glyph.metrics.width as u32);
@@ -43,9 +43,9 @@ pub fn glyph_range_for_face(
     size: usize,
     radius: usize,
     cutoff: f64,
-) -> Result<glyphs::fontstack, sdf_glyph_renderer::Error> {
+) -> Result<glyphs::Fontstack, sdf_glyph_renderer::Error> {
     if let Some(family_name) = face.family_name() {
-        let mut stack = glyphs::fontstack::new();
+        let mut stack = glyphs::Fontstack::new();
 
         let stack_name = if let Some(style_name) = face.style_name() {
             format!("{} {}", family_name, style_name)
@@ -65,10 +65,10 @@ pub fn glyph_range_for_face(
         face.set_char_size(0, (size << 6) as isize, 0, 0).unwrap();
 
         for char_code in start..=end {
-            let result = render_sdf_glyph(&face, char_code, 3, radius, cutoff);
+            let result = render_sdf_glyph(face, char_code, 3, radius, cutoff);
             match result {
                 Ok(glyph) => {
-                    stack.mut_glyphs().push(glyph);
+                    stack.glyphs.push(glyph);
                 }
                 Err(sdf_glyph_renderer::Error::FreeTypeError(
                     freetype::Error::InvalidGlyphIndex,
@@ -95,12 +95,12 @@ pub fn glyph_range_for_font(
     size: usize,
     radius: usize,
     cutoff: f64,
-) -> Result<glyphs::glyphs, sdf_glyph_renderer::Error> {
+) -> Result<glyphs::Glyphs, sdf_glyph_renderer::Error> {
     let lib = Library::init().unwrap();
     let mut face = lib.new_face(font_path, 0).unwrap();
     let num_faces = face.num_faces();
 
-    let mut result = glyphs::glyphs::new();
+    let mut result = glyphs::Glyphs::new();
 
     for face_index in 0..num_faces {
         if face_index > 0 {
@@ -108,7 +108,7 @@ pub fn glyph_range_for_font(
         }
 
         let stack = glyph_range_for_face(&face, start, end, size, radius, cutoff)?;
-        result.mut_stacks().push(stack);
+        result.stacks.push(stack);
     }
 
     Ok(result)

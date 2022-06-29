@@ -1,3 +1,3 @@
 // generated protobuf files will be included here. See build.rs for details
 
-include!(env!("PROTO_MOD_RS"));
+include!(concat!(env!("OUT_DIR"), "/protos/mod.rs"));
