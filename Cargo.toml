@@ -1,22 +1,22 @@
 [package]
 name = "build_pbf_glyphs"
-version = "1.0.1"
-authors = ["Ian Wagner <ian@stadiamaps.com>"]
+version = "1.1.0"
+authors = ["Ian Wagner <ian@stadiamaps.com>", "Luke Seelenbinder <luke@stadiamaps.com>"]
 license = "BSD-3-Clause"
 repository = "https://github.com/stadiamaps/build_pbf_glyphs"
 readme = "README.md"
 description = "Tools for working with SDF font glyphs encoded in protobuf format."
 keywords = ["sdf", "protobuf", "fonts"]
 categories = ["encoding", "parsing", "rendering::data-formats"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
-clap = "2.33.3"
-freetype-rs = "0.27.0"
+clap = { version = "3.1.18", features = ["cargo"] }
+freetype-rs = "0.30.1"
 num_cpus = "1.13.0"
-protobuf = "2.22.1"
+protobuf = "3.0.3"
 spmc = "0.3.0"
 
 [dependencies.pbf_font_tools]
-version = "1.0.2"
+version = "2.1.0"
 features = ["freetype"]

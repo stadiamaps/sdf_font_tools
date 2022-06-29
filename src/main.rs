@@ -26,22 +26,24 @@
 //! $ build_pbf_glyphs /path/to/font_dir /path/to/out_dir
 //! ```
 
-use std::fs::{create_dir_all, read_dir, File};
-use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicUsize, Ordering};
-use std::thread;
+use std::{
+    fs::{create_dir_all, File, read_dir},
+    path::{Path, PathBuf},
+    sync::atomic::{AtomicUsize, Ordering},
+    thread, time::Instant,
+};
 
-use clap::{app_from_crate, crate_authors, crate_description, crate_name, crate_version, Arg};
+use clap::{Arg, command, crate_authors, crate_description, crate_version};
 use freetype::{Face, Library};
-use protobuf::CodedOutputStream;
-use protobuf::Message;
+use protobuf::{
+    CodedOutputStream, Message,
+};
 use spmc::{channel, Receiver};
-use std::time::Instant;
 
 static TOTAL_GLYPHS_RENDERED: AtomicUsize = AtomicUsize::new(0);
 
 fn worker(
-    base_out_dir: String,
+    base_out_dir: PathBuf,
     radius: usize,
     cutoff: f64,
     rx: Receiver<Option<(PathBuf, PathBuf)>>,
@@ -49,8 +51,7 @@ fn worker(
     let lib = Library::init().expect("Unable to initialize FreeType");
 
     while let Ok(Some((path, stem))) = rx.recv() {
-        let out_dir =
-            Path::new(&base_out_dir).join(stem.to_str().expect("Unable to extract file stem"));
+        let out_dir = base_out_dir.join(stem.to_str().expect("Unable to extract file stem"));
         create_dir_all(&out_dir).expect("Unable to create output directory");
 
         println!("Processing {}", path.to_str().unwrap());
@@ -73,14 +74,14 @@ fn worker(
             .expect("Unable to convert path to a valid UTF-8 string.");
 
         while start < 65536 {
-            let mut glyphs = pbf_font_tools::glyphs::glyphs::new();
+            let mut glyphs = pbf_font_tools::glyphs::Glyphs::new();
 
             for (face_index, face) in faces.iter().enumerate() {
                 if let Ok(stack) = pbf_font_tools::generate::glyph_range_for_face(
                     face, start, end, 24, radius, cutoff,
                 ) {
                     glyphs_rendered += stack.glyphs.len();
-                    glyphs.mut_stacks().push(stack);
+                    glyphs.stacks.push(stack);
                 } else {
                     println!(
                         "ERROR: Failed to render fontstack for face {} in {}",
@@ -103,35 +104,38 @@ fn worker(
             "Found {} valid glyphs across {} face(s) in {}",
             glyphs_rendered, num_faces, path_str
         );
+
         TOTAL_GLYPHS_RENDERED.fetch_add(glyphs_rendered, Ordering::Relaxed);
     }
 }
 
 fn main() {
-    let matches = app_from_crate!()
-        .arg(Arg::with_name("FONT_DIR")
+    let matches = command!()
+        .author(crate_authors!())
+        .version(crate_version!())
+        .before_help(crate_description!())
+        .arg(Arg::new("FONT_DIR")
             .help("Sets the source directory to be scanned for fonts")
             .required(true)
             .index(1))
-        .arg(Arg::with_name("OUT_DIR")
+        .arg(Arg::new("OUT_DIR")
             .help("Sets the output directory in which the PBF glyphs will be placed (each font will be placed in a new subdirectory with appropriately named PBF files)")
             .required(true)
             .index(2))
         .get_matches();
 
     let font_dir = Path::new(matches.value_of("FONT_DIR").unwrap());
-    let out_dir = matches.value_of("OUT_DIR").unwrap();
+    let out_dir = PathBuf::from(matches.value_of("OUT_DIR").unwrap());
 
     let (mut tx, rx) = channel();
-    let mut join_handles = Vec::new();
     let num_threads = num_cpus::get();
     println!("Starting {} worker threads...", num_threads);
 
-    for _ in 0..num_threads {
+    let join_handles: Vec<_> = (0..num_threads).map(|_| {
+        let out_dir = out_dir.clone();
         let rx = rx.clone();
-        let out_dir = String::from(out_dir);
-        join_handles.push(thread::spawn(move || worker(out_dir, 8, 0.25, rx)));
-    }
+        thread::spawn(move || worker(out_dir, 8, 0.25, rx))
+    }).collect();
 
     let render_start = Instant::now();
 
@@ -140,8 +144,7 @@ fn main() {
             let path = dir_entry.path();
 
             if let (Some(stem), Some(extension)) = (path.file_stem(), path.extension()) {
-                if path.is_file()
-                    && (extension == "otf" || extension == "ttf" || extension == "ttc")
+                if path.is_file() && (["otf", "ttf", "ttc"].contains(&extension.to_str().unwrap()))
                 {
                     tx.send(Some((path.clone(), PathBuf::from(stem))))
                         .expect("Unable to push job to thread worker");
