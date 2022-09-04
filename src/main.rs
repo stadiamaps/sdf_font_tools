@@ -32,6 +32,8 @@ use std::{
     sync::atomic::{AtomicUsize, Ordering},
     thread, time::Instant,
 };
+use std::collections::HashMap;
+use std::ops::Deref;
 
 use clap::{Arg, command, crate_authors, crate_description, crate_version};
 use freetype::{Face, Library};
@@ -42,7 +44,43 @@ use spmc::{channel, Receiver};
 
 static TOTAL_GLYPHS_RENDERED: AtomicUsize = AtomicUsize::new(0);
 
-fn worker(
+/// Combines glyphs for all fonts listed in `font_names` in `font_path` into a single stack
+/// with name `stack_name`.
+///
+/// The font name list will be used as the order of precedence.
+async fn combine_worker(
+    font_path: PathBuf,
+    font_names: &[&str],
+    stack_name: String,
+) {
+    let out_dir = font_path.join(&stack_name);
+    create_dir_all(&out_dir).expect("Unable to create output directory");
+
+    let mut start = 0;
+    let mut end = 255;
+
+    while start < 65536 {
+        let stack = pbf_font_tools::get_named_font_stack(&font_path, font_names, stack_name.clone(), start, end).await.expect("Unable to load font stack");
+
+        let mut file = File::create(out_dir.join(format!("{}-{}.pbf", start, end)))
+            .expect("Unable to create file");
+        let mut cos = CodedOutputStream::new(&mut file);
+        stack.write_to(&mut cos).expect("Unable to write");
+        cos.flush().expect("Unable to flush");
+
+        start += 256;
+        end += 256;
+    }
+
+    println!("Combined glyphs for {}", stack_name);
+}
+
+/// A worker function that converts a font to a set of SDF glyphs.
+///
+/// The glyphs are output as a set of files in a directory where each file contains
+/// exactly 255 glyphs and is named like so: <base_out_dir>/<font name>/<start>-<end>.pbf
+/// where the start and end numbers represent the unicade code point.
+fn render_worker(
     base_out_dir: PathBuf,
     radius: usize,
     cutoff: f64,
@@ -74,27 +112,33 @@ fn worker(
             .expect("Unable to convert path to a valid UTF-8 string.");
 
         while start < 65536 {
-            let mut glyphs = pbf_font_tools::glyphs::Glyphs::new();
+            // TODO: Option to use existing
+            let glyph_path = out_dir.join(format!("{}-{}.pbf", start, end));
+            if Path::exists(&glyph_path) {
+                println!("Skipping for existing path: {}", glyph_path.to_str().unwrap());
+            } else {
+                let mut glyphs = pbf_font_tools::glyphs::Glyphs::new();
 
-            for (face_index, face) in faces.iter().enumerate() {
-                if let Ok(stack) = pbf_font_tools::generate::glyph_range_for_face(
-                    face, start, end, 24, radius, cutoff,
-                ) {
-                    glyphs_rendered += stack.glyphs.len();
-                    glyphs.stacks.push(stack);
-                } else {
-                    println!(
-                        "ERROR: Failed to render fontstack for face {} in {}",
-                        face_index, path_str
-                    )
+                for (face_index, face) in faces.iter().enumerate() {
+                    if let Ok(stack) = pbf_font_tools::generate::glyph_range_for_face(
+                        face, start, end, 24, radius, cutoff,
+                    ) {
+                        glyphs_rendered += stack.glyphs.len();
+                        glyphs.stacks.push(stack);
+                    } else {
+                        println!(
+                            "ERROR: Failed to render fontstack for face {} in {}",
+                            face_index, path_str
+                        )
+                    }
                 }
-            }
 
-            let mut file = File::create(out_dir.join(format!("{}-{}.pbf", start, end)))
-                .expect("Unable to create file");
-            let mut cos = CodedOutputStream::new(&mut file);
-            glyphs.write_to(&mut cos).expect("Unable to write");
-            cos.flush().expect("Unable to flush");
+                let mut file = File::create(glyph_path)
+                    .expect("Unable to create file");
+                let mut cos = CodedOutputStream::new(&mut file);
+                glyphs.write_to(&mut cos).expect("Unable to write");
+                cos.flush().expect("Unable to flush");
+            }
 
             start += 256;
             end += 256;
@@ -110,6 +154,7 @@ fn worker(
 }
 
 fn main() {
+    // TODO: Option to use existing
     let matches = command!()
         .author(crate_authors!())
         .version(crate_version!())
@@ -122,10 +167,17 @@ fn main() {
             .help("Sets the output directory in which the PBF glyphs will be placed (each font will be placed in a new subdirectory with appropriately named PBF files)")
             .required(true)
             .index(2))
+        .arg(Arg::new("COMBINATION_SPEC")
+            .help("Path to a file containing a set of glyph combination specifications. The format of the file is a dictionary where the keys are the desired name of the new combined glyph, and the values are a list of fonts in order of glyph precedence.")
+            .required(false)
+            .short('c')
+            .long("combinations")
+            .takes_value(true)
+        )
         .get_matches();
 
-    let font_dir = Path::new(matches.value_of("FONT_DIR").unwrap());
-    let out_dir = PathBuf::from(matches.value_of("OUT_DIR").unwrap());
+    let font_dir = Path::new(matches.get_one::<String>("FONT_DIR").unwrap());
+    let out_dir = PathBuf::from(matches.get_one::<String>("OUT_DIR").unwrap());
 
     let (mut tx, rx) = channel();
     let num_threads = num_cpus::get();
@@ -134,7 +186,7 @@ fn main() {
     let join_handles: Vec<_> = (0..num_threads).map(|_| {
         let out_dir = out_dir.clone();
         let rx = rx.clone();
-        thread::spawn(move || worker(out_dir, 8, 0.25, rx))
+        thread::spawn(move || render_worker(out_dir, 8, 0.25, rx))
     }).collect();
 
     let render_start = Instant::now();
@@ -165,10 +217,32 @@ fn main() {
 
     let total_glyphs_rendered = TOTAL_GLYPHS_RENDERED.load(Ordering::Relaxed);
     let render_duration = render_start.elapsed();
-    let duration_per_glyph = render_duration / total_glyphs_rendered as u32;
 
-    println!(
-        "Done. Rendered {} glyph(s) in {:?} ({:?}/glyph)",
-        total_glyphs_rendered, render_duration, duration_per_glyph
-    );
+    if total_glyphs_rendered > 0 {
+        let duration_per_glyph = render_duration / total_glyphs_rendered as u32;
+
+        println!(
+            "Rendered {} glyph(s) in {:?} ({:?}/glyph)",
+            total_glyphs_rendered, render_duration, duration_per_glyph
+        );
+    }
+
+    match matches.get_one::<String>("COMBINATION_SPEC") {
+        None => {}
+        Some(path) => {
+            // Async code, as necessary
+            tokio::runtime::Builder::new_current_thread()
+                .enable_all()
+                .build()
+                .unwrap()
+                .block_on(async {
+                    let data = tokio::fs::read(Path::new(path)).await.expect("Unable to read combination spec.");
+                    let combinations: HashMap<String, Vec<String>> = serde_json::from_slice(&data).expect("Unable to parse combination spec.");
+                    for (name, fonts) in combinations.iter() {
+                        let fonts: Vec<&str> = fonts.iter().map(|item| item.deref()).collect();
+                        combine_worker(out_dir.clone(), &fonts, name.clone()).await
+                    }
+                })
+        }
+    }
 }
