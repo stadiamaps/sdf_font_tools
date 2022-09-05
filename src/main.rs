@@ -182,7 +182,7 @@ fn main() {
             .required(true)
             .index(2))
         .arg(Arg::new("COMBINATION_SPEC")
-            .help("Path to a file containing a set of glyph combination specifications. The format of the file is a dictionary where the keys are the desired name of the new combined glyph, and the values are a list of fonts in order of glyph precedence.")
+            .help("Path to a file containing a set of glyph combination specifications. The file should contain a JSON dictionary having a format like so: {\"New Font Name\": [\"Font 1\", \"Font 2\"]}")
             .required(false)
             .short('c')
             .long("combinations")
