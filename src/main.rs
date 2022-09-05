@@ -47,7 +47,7 @@ static TOTAL_GLYPHS_RENDERED: AtomicUsize = AtomicUsize::new(0);
 /// with name `stack_name`.
 ///
 /// The font name list will be used as the order of precedence.
-async fn combine_worker(font_path: PathBuf, font_names: &[&str], stack_name: String) {
+async fn combine_glyphs(font_path: PathBuf, font_names: &[&str], stack_name: String) {
     let out_dir = font_path.join(&stack_name);
     create_dir_all(&out_dir).expect("Unable to create output directory");
 
@@ -79,7 +79,12 @@ async fn combine_worker(font_path: PathBuf, font_names: &[&str], stack_name: Str
         end += 256;
     }
 
-    println!("Combined {} glyphs from [{}] into {}", glyphs_combined, font_names.join(", "), stack_name);
+    println!(
+        "Combined {} glyphs from [{}] into {}",
+        glyphs_combined,
+        font_names.join(", "),
+        stack_name
+    );
 }
 
 /// A worker function that converts a font to a set of SDF glyphs.
@@ -152,10 +157,7 @@ fn render_worker(
         }
 
         if glyphs_skipped > 0 {
-            println!(
-                "Skipped {} glyphs in {}",
-                glyphs_skipped, path_str
-            );
+            println!("Skipped up to {} glyphs in {}", glyphs_skipped, path_str);
         }
         if glyphs_skipped != 65536 {
             println!(
@@ -212,16 +214,16 @@ fn main() {
 
     let render_start = Instant::now();
 
-    for entry in read_dir(font_dir).expect("Unable to open font directory") {
-        if let Ok(dir_entry) = entry {
-            let path = dir_entry.path();
+    for dir_entry in read_dir(font_dir)
+        .expect("Unable to open font directory")
+        .flatten()
+    {
+        let path = dir_entry.path();
 
-            if let (Some(stem), Some(extension)) = (path.file_stem(), path.extension()) {
-                if path.is_file() && (["otf", "ttf", "ttc"].contains(&extension.to_str().unwrap()))
-                {
-                    tx.send(Some((path.clone(), PathBuf::from(stem))))
-                        .expect("Unable to push job to thread worker");
-                }
+        if let (Some(stem), Some(extension)) = (path.file_stem(), path.extension()) {
+            if path.is_file() && (["otf", "ttf", "ttc"].contains(&extension.to_str().unwrap())) {
+                tx.send(Some((path.clone(), PathBuf::from(stem))))
+                    .expect("Unable to push job to thread worker");
             }
         }
     }
@@ -248,25 +250,26 @@ fn main() {
         );
     }
 
-    match matches.get_one::<String>("COMBINATION_SPEC") {
-        None => {}
-        Some(path) => {
-            // Async code, as necessary
-            tokio::runtime::Builder::new_current_thread()
-                .enable_all()
-                .build()
-                .unwrap()
-                .block_on(async {
-                    let data = tokio::fs::read(Path::new(path))
-                        .await
-                        .expect("Unable to read combination spec.");
-                    let combinations: HashMap<String, Vec<String>> =
-                        serde_json::from_slice(&data).expect("Unable to parse combination spec.");
-                    for (name, fonts) in combinations.iter() {
-                        let fonts: Vec<&str> = fonts.iter().map(|item| item.deref()).collect();
-                        combine_worker(out_dir.clone(), &fonts, name.clone()).await
-                    }
-                })
-        }
-    }
+    matches.get_one::<String>("COMBINATION_SPEC").map(|path| {
+        // Async code, as necessary. Most of the rest of the code is actually truly blocking
+        // since it's calling C libs or compute-heavy functions. Glyph combination however
+        // happens to actually leverage async I/O, so we fire up a runtime here. It makes
+        // the rest of the code simpler in this case to isolate the async code esp as it isn't
+        // in the normal execution path.
+        tokio::runtime::Builder::new_multi_thread()
+            .enable_all()
+            .build()
+            .unwrap()
+            .block_on(async {
+                let data = tokio::fs::read(Path::new(path))
+                    .await
+                    .expect("Unable to read combination spec.");
+                let combinations: HashMap<String, Vec<String>> =
+                    serde_json::from_slice(&data).expect("Unable to parse combination spec.");
+                for (name, fonts) in combinations.iter() {
+                    let fonts: Vec<&str> = fonts.iter().map(|item| item.deref()).collect();
+                    combine_glyphs(out_dir.clone(), &fonts, name.clone()).await
+                }
+            })
+    });
 }
