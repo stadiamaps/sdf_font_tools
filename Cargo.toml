@@ -9,6 +9,7 @@ description = "A CLI utility for generating protobuf-encoded SDF font glyphs fro
 keywords = ["sdf", "protobuf", "fonts"]
 categories = ["encoding", "parsing", "rendering::data-formats"]
 edition = "2021"
+exclude = [".github/"]
 
 [dependencies]
 clap = { version = "3.2.17", features = ["cargo"] }
@@ -19,9 +20,7 @@ serde_json = "1.0.85"
 spmc = "0.3.0"
 
 [dependencies.pbf_font_tools]
-#version = "2.1.0"
-git = "https://github.com/stadiamaps/pbf_font_tools"
-branch = "named-font-stack"
+version = "2.2.0"
 features = ["freetype"]
 
 [dependencies.tokio]

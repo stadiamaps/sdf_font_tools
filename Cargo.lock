@@ -335,7 +335,8 @@ checksum = "9ff7415e9ae3fff1225851df9e0d9e4e5479f947619774677a63572e55e80eff"
 [[package]]
 name = "pbf_font_tools"
 version = "2.2.0"
-source = "git+https://github.com/stadiamaps/pbf_font_tools?branch=named-font-stack#719cb63baadcebcabaa1355a37dd0b3f40fd6d88"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9a9cbd684ede543f34ae89ae86fd0bb224327b106e89829fe7180b8da0f0df55"
 dependencies = [
  "freetype-rs",
  "futures",
@@ -534,7 +535,8 @@ checksum = "4501abdff3ae82a1c1b477a17252eb69cee9e66eb915c1abaa4f44d873df9f09"
 [[package]]
 name = "sdf_glyph_renderer"
 version = "0.4.0"
-source = "git+https://github.com/stadiamaps/sdf_glyph_renderer?branch=upgrade-freetype#6525fdca7218f54cb1bca53ce7d4c20092109f2a"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b545aef102c1a8fed89f254b10a4e512058eccb1fd95f9ce886ca925e1961f14"
 dependencies = [
  "derive-error",
  "freetype-rs",
