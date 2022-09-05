@@ -9,6 +9,7 @@ description = "Tools for working with SDF font glyphs encoded in protobuf format
 keywords = ["sdf", "protobuf", "fonts"]
 categories = ["encoding", "parsing", "rendering::data-formats"]
 edition = "2021"
+exclude = [".github/"]
 
 [features]
 freetype = ["freetype-rs", "sdf_glyph_renderer/freetype"]
@@ -31,9 +32,7 @@ version = "0.31.0"
 optional = true
 
 [dependencies.sdf_glyph_renderer]
-#version = "0.3.0"
-git = "https://github.com/stadiamaps/sdf_glyph_renderer"
-branch = "upgrade-freetype"
+version = "0.4.0"
 optional = true
 
 [dev-dependencies.tokio]
