@@ -9,6 +9,9 @@ description = "Tools for generating SDF font glyphs from bitmap images."
 keywords = ["sdf", "fonts", "glyphs"]
 categories = ["rendering::data-formats", "graphics", "algorithms", "encoding"]
 edition = "2021"
+exclude = [
+    ".github/"
+]
 
 [features]
 freetype = ["freetype-rs"]
