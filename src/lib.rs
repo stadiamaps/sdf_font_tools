@@ -29,9 +29,10 @@ type GlyphResult = Result<glyphs::Glyphs, protobuf::Error>;
 /// See the documentation for `combine_glyphs` for further details.
 /// Unlike `combine_glyphs`, the result of this method will always contain a `glyphs` message,
 /// even if the loaded range is empty for a given font.
-pub async fn get_font_stack(
+pub async fn get_named_font_stack(
     font_path: &Path,
     font_names: &[&str],
+    stack_name: String,
     start: u32,
     end: u32,
 ) -> GlyphResult {
@@ -53,12 +54,22 @@ pub async fn get_font_stack(
             let mut result = glyphs::Glyphs::new();
 
             let mut stack = glyphs::Fontstack::new();
-            stack.set_name(font_names.join(", "));
+            stack.set_name(stack_name);
             stack.set_range(format!("{start}-{end}"));
 
             result.stacks.push(stack);
             result
         }))
+}
+
+pub async fn get_font_stack(
+    font_path: &Path,
+    font_names: &[&str],
+    start: u32,
+    end: u32,
+) -> GlyphResult {
+    let stack_name = font_names.join(", ");
+    get_named_font_stack(font_path, font_names, stack_name, start, end).await
 }
 
 /// Loads a single font PBF slice from disk.
