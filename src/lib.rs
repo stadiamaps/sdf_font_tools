@@ -45,7 +45,7 @@ pub struct SDFGlyph {
 /// the [FreeType tutorial](https://www.freetype.org/freetype2/docs/tutorial/step2.html) is a
 /// fantastic reference.
 #[cfg(feature = "freetype")]
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct GlyphMetrics {
     /// The unbuffered width of the glyph in px.
     pub width: usize,
@@ -71,7 +71,7 @@ pub struct GlyphMetrics {
 }
 
 /// A raw bitmap containing only the alpha channel.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct BitmapGlyph {
     /// The rendered, buffered glyph bitmap, flattened into a 1D array consisting only of only the
     /// alpha channel.
@@ -160,7 +160,7 @@ impl BitmapGlyph {
 /// An O(n) Euclidean Distance Transform algorithm.
 /// See page 6 (420) of http://cs.brown.edu/people/pfelzens/papers/dt-final.pdf for details and
 /// further discussion of the math behind this.
-fn dt(grid: &mut Vec<f64>, offset: usize, step_by: usize, size: usize) {
+fn dt(grid: &mut [f64], offset: usize, step_by: usize, size: usize) {
     // For our purposes, f is a one-dimensional slice of the grid
     let f: Vec<f64> = grid.iter().skip(offset).step_by(step_by).copied().collect();
 
