@@ -1,6 +1,6 @@
 [package]
 name = "build_pbf_glyphs"
-version = "1.2.0"
+version = "1.3.0"
 authors = ["Ian Wagner <ian@stadiamaps.com>", "Luke Seelenbinder <luke@stadiamaps.com>"]
 license = "BSD-3-Clause"
 repository = "https://github.com/stadiamaps/build_pbf_glyphs"
