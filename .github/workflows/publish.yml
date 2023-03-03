@@ -39,6 +39,6 @@ jobs:
           command: build
           args: --all-features --release
       - name: Push Artifacts
-        run: gh release upload $GITHUB_REF_NAME output/build_pbf_glyphs#build_pbf_glyphs.linux.x86_64
+        run: gh release upload $GITHUB_REF_NAME target/release/build_pbf_glyphs#build_pbf_glyphs.linux.x86_64
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
