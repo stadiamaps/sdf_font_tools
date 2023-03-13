@@ -1,11 +1,13 @@
 use protoc_bin_vendored::protoc_bin_path;
 
 fn main() {
-    protobuf_codegen::Codegen::new()
+    let mut codegen = protobuf_codegen::Codegen::new();
+    codegen
         .cargo_out_dir("protos")
-        .protoc_path(&protoc_bin_path().unwrap())
         .input("proto/glyphs.proto")
-        .include("proto/")
-        .run()
-        .expect("Protobuf codegen failed.");
+        .include("proto/");
+    if let Ok(vendored_protoc) = protoc_bin_path() {
+        codegen.protoc_path(&vendored_protoc);
+    }
+    codegen.run().expect("Protobuf codegen failed.");
 }
