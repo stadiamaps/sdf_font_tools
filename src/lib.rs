@@ -273,7 +273,7 @@ pub fn render_sdf(bitmap: &BitmapGlyph, radius: usize) -> Vec<f64> {
         .collect()
 }
 
-/// Compresses a Vec<f64> into a Vec<u8> for efficiency.
+/// Compresses a `Vec<f64>` into a `Vec<u8>` for efficiency.
 ///
 /// The highest `cutoff` percent of values in the range (0-255) will be used to encode
 /// negative values (points inside the glyph). This can be tuned based on the intended
