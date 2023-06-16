@@ -98,7 +98,7 @@ async fn test_glyph_generation() {
     let font_name = "Open Sans Light";
     let otf_path = font_path.join(font_name).join(format!("{font_name}.ttf"));
     let rendered_glyphs =
-        pbf_font_tools::generate::glyph_range_for_font(&*otf_path, 0, 255, 24, 8, 0.25)
+        pbf_font_tools::generate::glyph_range_for_font(&otf_path, 0, 255, 24, 8, 0.25)
             .expect("Unable to render glyphs");
     let fixture_glyphs = pbf_font_tools::load_glyphs(font_path.as_path(), font_name, 0, 255)
         .await
