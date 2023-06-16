@@ -15,26 +15,16 @@ exclude = [".github/"]
 freetype = ["freetype-rs", "sdf_glyph_renderer/freetype"]
 
 [dependencies]
-futures = "0.3.14"
-protobuf = "3.0.3"
+freetype-rs = { version = "0.32.0", optional = true }
+futures = "0.3.28"
+protobuf = "3.2.0"
+sdf_glyph_renderer = { version = "0.5.1", optional = true }
+tokio = { version = "1.28.2", features = ["rt"] }
 
-[dependencies.tokio]
-version = "1.12.0"
-features = ["rt"]
+[dev-dependencies]
+tokio = { version = "1.28.2", features = ["rt", "fs", "io-util", "macros"] }
 
 [build-dependencies]
-glob = "0.3.0"
-protobuf-codegen = "3.0.3"
+glob = "0.3.1"
+protobuf-codegen = "3.2.0"
 protoc-bin-vendored = "3.0.0"
-
-[dependencies.freetype-rs]
-version = "0.32.0"
-optional = true
-
-[dependencies.sdf_glyph_renderer]
-version = "0.5.0"
-optional = true
-
-[dev-dependencies.tokio]
-version = "1.12.0"
-features = ["fs", "io-util", "macros", "rt"]
