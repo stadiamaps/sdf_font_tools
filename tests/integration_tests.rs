@@ -16,7 +16,7 @@ async fn test_load_glyphs() {
             assert_eq!(stack.name, Some(String::from(font_name)));
             assert_eq!(glyph_count, 170);
         }
-        Err(e) => panic!("Encountered error {:#?}.", e),
+        Err(e) => panic!("Encountered error {e:#?}."),
     }
 }
 
@@ -69,9 +69,10 @@ async fn test_get_font_stack() {
             // Make sure the Namsan font glyphs took precedence over the Open Sans ones.
             for glyph in &stack.glyphs {
                 if let Some(namsan_glyph) = namsan_mapping.get(&glyph.id.unwrap()) {
-                    if !namsan_glyph.eq(&glyph.bitmap.clone().unwrap()) {
-                        panic!("Encountered glyph where Namsan was overwritten by Open Sans.");
-                    }
+                    assert!(
+                        namsan_glyph.eq(&glyph.bitmap.clone().unwrap()),
+                        "Encountered glyph where Namsan was overwritten by Open Sans."
+                    );
                 } else if open_sans_mapping.get(&glyph.id.unwrap()).is_some() {
                     has_open_sans_glyph = true;
                 } else {
@@ -95,9 +96,9 @@ async fn test_get_font_stack() {
 async fn test_glyph_generation() {
     let font_path = Path::new("tests").join("glyphs");
     let font_name = "Open Sans Light";
-    let otf_path = font_path.join(font_name).join(format!("{}.ttf", font_name));
+    let otf_path = font_path.join(font_name).join(format!("{font_name}.ttf"));
     let rendered_glyphs =
-        pbf_font_tools::generate::glyph_range_for_font(&*otf_path, 0, 255, 24, 8, 0.25)
+        pbf_font_tools::generate::glyph_range_for_font(&otf_path, 0, 255, 24, 8, 0.25)
             .expect("Unable to render glyphs");
     let fixture_glyphs = pbf_font_tools::load_glyphs(font_path.as_path(), font_name, 0, 255)
         .await

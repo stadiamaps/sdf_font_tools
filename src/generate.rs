@@ -48,13 +48,13 @@ pub fn glyph_range_for_face(
         let mut stack = glyphs::Fontstack::new();
 
         let stack_name = if let Some(style_name) = face.style_name() {
-            format!("{} {}", family_name, style_name)
+            format!("{family_name} {style_name}")
         } else {
             family_name
         };
 
         stack.set_name(stack_name);
-        stack.set_range(format!("{}-{}", start, end));
+        stack.set_range(format!("{start}-{end}"));
 
         // FreeType conventions: char width or height of zero means "use the same value"
         // and setting both resolution values to zero results in the default value

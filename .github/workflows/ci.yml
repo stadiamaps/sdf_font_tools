@@ -1,0 +1,39 @@
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  release:
+    types: [published]
+  workflow_dispatch:
+
+name: CI
+
+jobs:
+  build_test_publish:
+    name: Run unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Rust Versions
+        run: |
+          rustc --version
+          cargo --version
+
+      - name: Test
+        run: |
+          cargo test --all-features
+          cargo test --release --all-features
+
+      - name: Lint
+        run: |
+          cargo fmt --all -- --check
+          cargo clippy --all-targets --all-features -- -D warnings
+
+      - name: Publish
+        if: github.event.release.published == true
+        run: cargo publish --all-features
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}

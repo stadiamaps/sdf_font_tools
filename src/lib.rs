@@ -7,8 +7,8 @@
 //! is planned for a future release.
 //!
 //! ## References
-//!   * https://github.com/mapbox/glyph-pbf-composite
-//!   * https://github.com/klokantech/tileserver-gl/blob/master/src/utils.js
+//!   * [glyph-pbf-composite](https://github.com/mapbox/glyph-pbf-composite)
+//!   * [tileserver-gl](https://github.com/klokantech/tileserver-gl/blob/master/src/utils.js)
 
 pub use proto::glyphs;
 
@@ -74,7 +74,7 @@ pub async fn get_font_stack(
 
 /// Loads a single font PBF slice from disk.
 ///
-/// Fonts are assumed to be stored in <font_path>/<font_name>/<start>-<end>.pbf.
+/// Fonts are assumed to be stored in `<font_path>/<font_name>/<start>-<end>.pbf`.
 pub async fn load_glyphs(font_path: &Path, font_name: &str, start: u32, end: u32) -> GlyphResult {
     let full_path = font_path.join(font_name).join(format!("{start}-{end}.pbf"));
 
@@ -95,6 +95,7 @@ pub async fn load_glyphs(font_path: &Path, font_name: &str, start: u32, end: u32
 ///
 /// NOTE: This returns `None` if there are no glyphs in the range. If you need to
 /// construct an empty message, the responsibility lies with the caller.
+#[must_use]
 pub fn combine_glyphs(glyphs_to_combine: Vec<glyphs::Glyphs>) -> Option<glyphs::Glyphs> {
     let mut result = glyphs::Glyphs::new();
     let mut combined_stack = glyphs::Fontstack::new();
@@ -102,12 +103,12 @@ pub fn combine_glyphs(glyphs_to_combine: Vec<glyphs::Glyphs>) -> Option<glyphs::
 
     for mut glyph_stack in glyphs_to_combine {
         for mut font_stack in glyph_stack.stacks.drain(..) {
-            if !combined_stack.has_name() {
-                combined_stack.set_name(font_stack.take_name());
-            } else {
+            if combined_stack.has_name() {
                 let name = combined_stack.mut_name();
                 name.push_str(", ");
                 name.push_str(&font_stack.take_name());
+            } else {
+                combined_stack.set_name(font_stack.take_name());
             }
 
             for glyph in font_stack.glyphs.drain(..) {
