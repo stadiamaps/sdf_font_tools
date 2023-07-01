@@ -97,9 +97,8 @@ async fn test_glyph_generation() {
     let font_path = Path::new("tests").join("glyphs");
     let font_name = "Open Sans Light";
     let otf_path = font_path.join(font_name).join(format!("{font_name}.ttf"));
-    let rendered_glyphs =
-        pbf_font_tools::generate::glyph_range_for_font(&otf_path, 0, 255, 24, 8, 0.25)
-            .expect("Unable to render glyphs");
+    let rendered_glyphs = pbf_font_tools::glyph_range_for_font(&otf_path, 0, 255, 24, 8, 0.25)
+        .expect("Unable to render glyphs");
     let fixture_glyphs = pbf_font_tools::load_glyphs(font_path.as_path(), font_name, 0, 255)
         .await
         .expect("Unable to load fixtures");
@@ -115,5 +114,5 @@ async fn test_glyph_generation() {
         .glyphs
         .iter()
         .zip(fixture_stack.glyphs.iter())
-        .for_each(|(glyph, fixture)| assert_eq!(glyph, fixture))
+        .for_each(|(glyph, fixture)| assert_eq!(glyph, fixture));
 }

@@ -12,13 +12,13 @@ edition = "2021"
 exclude = [".github/"]
 
 [features]
-freetype = ["freetype-rs", "sdf_glyph_renderer/freetype"]
+freetype = ["dep:sdf_glyph_renderer"]
 
 [dependencies]
-freetype-rs = { version = "0.32.0", optional = true }
 futures = "0.3.28"
 protobuf = "3.2.0"
-sdf_glyph_renderer = { version = "0.5.1", optional = true }
+sdf_glyph_renderer = { version = "0.6.0", features = ["freetype"], optional = true, path = "../sdf_glyph_renderer" }
+thiserror = "1"
 tokio = { version = "1.28.2", features = ["rt"] }
 
 [dev-dependencies]
