@@ -1,5 +1,6 @@
 use crate::proto::glyphs::{Fontstack, Glyphs};
 use crate::PbfFontError;
+use crate::PbfFontError::MissingFontFamilyName;
 use futures::future::try_join_all;
 use protobuf::Message;
 use std::collections::HashSet;
@@ -9,8 +10,8 @@ use tokio::task::spawn_blocking;
 
 /// Generates a single combined font stack for the set of fonts provided.
 ///
-/// See the documentation for `combine_glyphs` for further details.
-/// Unlike `combine_glyphs`, the result of this method will always contain a `glyphs` message,
+/// See the documentation for [combine_glyphs] for further details.
+/// Unlike [combine_glyphs], the result of this method will always contain a `glyphs` message,
 /// even if the loaded range is empty for a given font.
 pub async fn get_named_font_stack<P: AsRef<Path>>(
     font_path: P,
@@ -19,6 +20,9 @@ pub async fn get_named_font_stack<P: AsRef<Path>>(
     start: u32,
     end: u32,
 ) -> Result<Glyphs, PbfFontError> {
+    if font_names.is_empty() {
+        return Err(MissingFontFamilyName);
+    }
     // Load fonts
     let glyph_data = try_join_all(
         font_names
@@ -89,6 +93,8 @@ pub fn combine_glyphs(glyphs_to_combine: Vec<Glyphs>) -> Option<Glyphs> {
     let mut result = Glyphs::new();
     let mut combined_stack = Fontstack::new();
     let mut coverage: HashSet<u32> = HashSet::new();
+    let mut start = u32::MAX;
+    let mut end = u32::MIN;
 
     for mut glyph_stack in glyphs_to_combine {
         for mut font_stack in glyph_stack.stacks.drain(..) {
@@ -102,20 +108,25 @@ pub fn combine_glyphs(glyphs_to_combine: Vec<Glyphs>) -> Option<Glyphs> {
 
             for glyph in font_stack.glyphs.drain(..) {
                 if let Some(id) = glyph.id {
-                    if !coverage.contains(&id) {
-                        coverage.insert(id);
+                    if coverage.insert(id) {
                         combined_stack.glyphs.push(glyph);
+                        if id < start {
+                            start = id;
+                        }
+                        if id > end {
+                            end = id;
+                        }
                     }
                 }
             }
         }
     }
 
-    let start = coverage.iter().min()?;
-    let end = coverage.iter().max()?;
+    if combined_stack.is_empty() {
+        return None;
+    }
 
     combined_stack.set_range(format!("{start}-{end}"));
-
     result.stacks.push(combined_stack);
 
     Some(result)

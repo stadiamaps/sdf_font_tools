@@ -7,7 +7,6 @@ pub enum PbfFontError {
     #[cfg(feature = "freetype")]
     #[error("SDF glyph error: {0}")]
     SdfGlyphError(#[from] sdf_glyph_renderer::SdfGlyphError),
-    #[cfg(feature = "freetype")]
     #[error("Font family name is not set")]
     MissingFontFamilyName,
     #[cfg(feature = "freetype")]
