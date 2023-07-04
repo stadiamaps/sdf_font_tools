@@ -12,8 +12,8 @@ use tokio::task::spawn_blocking;
 /// See the documentation for `combine_glyphs` for further details.
 /// Unlike `combine_glyphs`, the result of this method will always contain a `glyphs` message,
 /// even if the loaded range is empty for a given font.
-pub async fn get_named_font_stack(
-    font_path: &Path,
+pub async fn get_named_font_stack<P: AsRef<Path>>(
+    font_path: P,
     font_names: &[&str],
     stack_name: String,
     start: u32,
@@ -22,8 +22,8 @@ pub async fn get_named_font_stack(
     // Load fonts
     let glyph_data = try_join_all(
         font_names
-            .iter()
-            .map(|font| load_glyphs(font_path, font, start, end)),
+            .into_iter()
+            .map(|font| load_glyphs(font_path.as_ref(), font, start, end)),
     )
     .await?;
 
@@ -44,8 +44,8 @@ pub async fn get_named_font_stack(
         }))
 }
 
-pub async fn get_font_stack(
-    font_path: &Path,
+pub async fn get_font_stack<P: AsRef<Path>>(
+    font_path: P,
     font_names: &[&str],
     start: u32,
     end: u32,
@@ -57,13 +57,16 @@ pub async fn get_font_stack(
 /// Loads a single font PBF slice from disk.
 ///
 /// Fonts are assumed to be stored in `<font_path>/<font_name>/<start>-<end>.pbf`.
-pub async fn load_glyphs(
-    font_path: &Path,
+pub async fn load_glyphs<P: AsRef<Path>>(
+    font_path: P,
     font_name: &str,
     start: u32,
     end: u32,
 ) -> Result<Glyphs, PbfFontError> {
-    let full_path = font_path.join(font_name).join(format!("{start}-{end}.pbf"));
+    let full_path = font_path
+        .as_ref()
+        .join(font_name)
+        .join(format!("{start}-{end}.pbf"));
 
     // Note: Counter-intuitively, it's much faster to use blocking IO with `spawn_blocking` here,
     // since the `Message::parse_` call will block as well.

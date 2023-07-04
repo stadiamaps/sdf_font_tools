@@ -2,6 +2,7 @@ use crate::error::PbfFontError;
 use crate::freetype;
 use crate::{Fontstack, Glyph, Glyphs};
 use sdf_glyph_renderer::{clamp_to_u8, render_sdf_from_face};
+use std::path::Path;
 
 fn render_sdf_glyph(
     face: &freetype::Face,
@@ -86,8 +87,8 @@ pub fn glyph_range_for_face(
     Ok(stack)
 }
 
-pub fn glyph_range_for_font(
-    font_path: &std::path::Path,
+pub fn glyph_range_for_font<P: AsRef<Path>>(
+    font_path: P,
     start: u32,
     end: u32,
     size: usize,
@@ -95,14 +96,14 @@ pub fn glyph_range_for_font(
     cutoff: f64,
 ) -> Result<Glyphs, PbfFontError> {
     let lib = freetype::Library::init()?;
-    let mut face = lib.new_face(font_path, 0)?;
+    let mut face = lib.new_face(font_path.as_ref(), 0)?;
     let num_faces = face.num_faces();
 
     let mut result = Glyphs::new();
 
     for face_index in 0..num_faces {
         if face_index > 0 {
-            face = lib.new_face(font_path, face_index as isize)?;
+            face = lib.new_face(font_path.as_ref(), face_index as isize)?;
         }
 
         let stack = glyph_range_for_face(&face, start, end, size, radius, cutoff)?;
