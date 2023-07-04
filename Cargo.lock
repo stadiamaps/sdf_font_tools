@@ -75,20 +75,13 @@ name = "build_pbf_glyphs"
 version = "1.3.0"
 dependencies = [
  "clap",
- "freetype-rs",
  "num_cpus",
- "pbf_font_tools 2.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "pbf_font_tools",
  "protobuf",
  "serde_json",
  "spmc",
  "tokio",
 ]
-
-[[package]]
-name = "bytes"
-version = "1.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "89b2fd2a0dcf38d7971e2194b6b6eebab45ae01067456a7fd93d5547a61b70be"
 
 [[package]]
 name = "case"
@@ -426,20 +419,6 @@ checksum = "4d5d9eb14b174ee9aa2ef96dc2b94637a2d4b6e7cb873c7e171f0c20c6cf3eac"
 [[package]]
 name = "pbf_font_tools"
 version = "2.3.0"
-dependencies = [
- "freetype-rs",
- "futures",
- "glob",
- "protobuf",
- "protobuf-codegen",
- "protoc-bin-vendored",
- "sdf_glyph_renderer 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "tokio",
-]
-
-[[package]]
-name = "pbf_font_tools"
-version = "2.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f81ce8d2c6215e83782de3744a30450f45fcc373b1742b8c3ff97e69631adb9f"
 dependencies = [
@@ -449,7 +428,7 @@ dependencies = [
  "protobuf",
  "protobuf-codegen",
  "protoc-bin-vendored",
- "sdf_glyph_renderer 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "sdf_glyph_renderer",
  "tokio",
 ]
 
@@ -657,14 +636,6 @@ checksum = "fe232bdf6be8c8de797b22184ee71118d63780ea42ac85b61d1baa6d3b782ae9"
 [[package]]
 name = "sdf_glyph_renderer"
 version = "0.5.1"
-dependencies = [
- "derive-error",
- "freetype-rs",
-]
-
-[[package]]
-name = "sdf_glyph_renderer"
-version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8ad1bcffb4e09905760cf4292860b8531fc861da54f028da07838f8f3e3cfbd0"
 dependencies = [
@@ -798,7 +769,6 @@ checksum = "532826ff75199d5833b9d2c5fe410f29235e25704ee5f0ef599fb51c21f4a4da"
 dependencies = [
  "autocfg",
  "backtrace",
- "bytes",
  "num_cpus",
  "pin-project-lite",
  "tokio-macros",
