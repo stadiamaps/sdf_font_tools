@@ -1,0 +1,44 @@
+on:
+  release:
+    types: [published]
+
+name: Cargo Publish
+
+jobs:
+  publish:
+    name: Publish
+    runs-on: macos-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+      - name: Use Rust Stable
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - name: Publish
+        uses: actions-rs/cargo@v1
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        with:
+          command: publish
+          args: --all-features
+
+  build:
+    name: Build Binaries
+    runs-on: macos-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+      - name: Use Rust Stable
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --all-features --release
+      - name: Push Artifacts
+        run: gh release upload $GITHUB_REF_NAME target/release/build_pbf_glyphs#build_pbf_glyphs.macos
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
