@@ -250,7 +250,7 @@ fn main() {
         );
     }
 
-    matches.get_one::<String>("COMBINATION_SPEC").map(|path| {
+    if let Some(path) = matches.get_one::<String>("COMBINATION_SPEC") {
         // Async code, as necessary. Most of the rest of the code is actually truly blocking
         // since it's calling C libs or compute-heavy functions. Glyph combination however
         // happens to actually leverage async I/O, so we fire up a runtime here. It makes
@@ -271,5 +271,5 @@ fn main() {
                     combine_glyphs(out_dir.clone(), &fonts, name.clone()).await
                 }
             })
-    });
+    }
 }

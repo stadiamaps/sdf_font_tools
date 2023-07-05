@@ -1,2 +1,2 @@
 [workspace]
-members = ["pbf_font_tools"]
+members = ["sdf_glyph_renderer", "pbf_font_tools", "build_pbf_glyphs"]

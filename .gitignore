@@ -2,4 +2,3 @@
 .idea
 **/*.rs.bk
 *.iws
-Cargo.lock
