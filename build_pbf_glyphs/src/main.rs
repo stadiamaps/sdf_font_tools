@@ -4,15 +4,15 @@
 //! [pbf_font_tools](https://github.com/stadiamaps/pbf_font_tools) that behaves similar to
 //! [node-fontnik](https://github.com/mapbox/node-fontnik), but is faster and (in our opinion)
 //! a bit easier to use since it doesn't depend on node and all its headaches, or C++ libraries
-//! that need to be built from scratch (this depends on FreeType, but that's widely available on
+//! that need to be built from scratch (this depends on `FreeType`, but that's widely available on
 //! nearly any *nix-based system).
 //!
 //! Check out
 //! [sdf_glyph_renderer](https://github.com/stadiamaps/sdf_glyph_renderer) for more technical
 //! details on how this works.
 //!
-//! NOTE: This has requires you to have FreeType installed on your system. We recommend using
-//! FreeType 2.10 or newer. Everything will still work against many older 2.x versions, but
+//! NOTE: This has requires you to have `FreeType` installed on your system. We recommend using
+//! `FreeType` 2.10 or newer. Everything will still work against many older 2.x versions, but
 //! the glyph generation improves over time so things will generally look better with newer
 //! versions.
 //!
@@ -90,7 +90,7 @@ async fn combine_glyphs(font_path: PathBuf, font_names: &[&str], stack_name: Str
 /// A worker function that converts a font to a set of SDF glyphs.
 ///
 /// The glyphs are output as a set of files in a directory where each file contains
-/// exactly 255 glyphs and is named like so: <base_out_dir>/<font name>/<start>-<end>.pbf
+/// exactly 255 glyphs and is named like so: `<base_out_dir>/<font name>/<start>-<end>.pbf`
 /// where the start and end numbers represent the unicade code point.
 fn render_worker(
     base_out_dir: PathBuf,
