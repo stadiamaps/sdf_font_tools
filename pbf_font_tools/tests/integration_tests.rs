@@ -1,7 +1,9 @@
 extern crate pbf_font_tools;
 
+use std::collections::HashMap;
+use std::path::Path;
+
 use futures::future::join3;
-use std::{collections::HashMap, path::Path};
 
 #[tokio::test]
 async fn test_load_glyphs() {

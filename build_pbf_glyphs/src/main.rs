@@ -27,17 +27,15 @@
 //! ```
 
 use std::collections::HashMap;
-
-use std::{
-    fs::{create_dir_all, File},
-    path::{Path, PathBuf},
-    sync::atomic::{AtomicUsize, Ordering},
-    thread,
-    time::Instant,
-};
+use std::fs::{create_dir_all, File};
+use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicUsize, Ordering};
+use std::thread;
+use std::time::Instant;
 
 use clap::{command, crate_authors, crate_description, crate_version, Arg};
 use pbf_font_tools::freetype::{Face, Library};
+use pbf_font_tools::{get_named_font_stack, glyph_range_for_face, Glyphs};
 use protobuf::{CodedOutputStream, Message};
 use spmc::{channel, Receiver};
 
@@ -56,15 +54,9 @@ async fn combine_glyphs(font_path: &Path, font_names: &[&str], stack_name: Strin
     let mut glyphs_combined = 0;
 
     while start < 65536 {
-        let stack = pbf_font_tools::get_named_font_stack(
-            font_path,
-            font_names,
-            stack_name.clone(),
-            start,
-            end,
-        )
-        .await
-        .expect("Unable to load font stack");
+        let stack = get_named_font_stack(font_path, font_names, stack_name.clone(), start, end)
+            .await
+            .expect("Unable to load font stack");
 
         // The above utility always returns a single stack
         glyphs_combined += stack.stacks[0].glyphs.len();
@@ -88,8 +80,8 @@ async fn combine_glyphs(font_path: &Path, font_names: &[&str], stack_name: Strin
 /// A worker function that converts a font to a set of SDF glyphs.
 ///
 /// The glyphs are output as a set of files in a directory where each file contains
-/// exactly 255 glyphs and is named like so: `<base_out_dir>/<font name>/<start>-<end>.pbf`
-/// where the start and end numbers represent the unicade code point.
+/// exactly 256 glyphs and is named like so: `<base_out_dir>/<font name>/<start>-<end>.pbf`
+/// where the start and end numbers represent the Unicode code point.
 fn render_worker(
     base_out_dir: &Path,
     overwrite: bool,
@@ -106,6 +98,9 @@ fn render_worker(
         println!("Processing {}", path.display());
 
         // Load the font once to save useless I/O
+        // FIXME: lib.new_face is called twice for face_index=0
+        //        instead, call it once, create a pre-allocated vector of faces for num_faces count
+        //        add the already open 0th, and add all remaining ones to it
         let face = lib.new_face(&path, 0).expect("Unable to load font");
         let num_faces = face.num_faces() as usize;
         let faces: Vec<Face> = (0..num_faces)
@@ -128,12 +123,10 @@ fn render_worker(
             if !overwrite && glyph_path.exists() {
                 glyphs_skipped += 256;
             } else {
-                let mut glyphs = pbf_font_tools::Glyphs::new();
+                let mut glyphs = Glyphs::new();
 
                 for (face_index, face) in faces.iter().enumerate() {
-                    if let Ok(stack) =
-                        pbf_font_tools::glyph_range_for_face(face, start, end, 24, radius, cutoff)
-                    {
+                    if let Ok(stack) = glyph_range_for_face(face, start, end, 24, radius, cutoff) {
                         glyphs_rendered += stack.glyphs.len();
                         glyphs.stacks.push(stack);
                     } else {

@@ -16,13 +16,12 @@ mod tools;
 
 #[cfg(feature = "freetype")]
 mod ft_generate;
-#[cfg(feature = "freetype")]
-pub use crate::ft_generate::*;
-
+pub use proto::glyphs::{Fontstack, Glyph, Glyphs};
 // Re-export freetype lib
 #[cfg(feature = "freetype")]
 pub use sdf_glyph_renderer::freetype;
 
 pub use crate::error::PbfFontError;
+#[cfg(feature = "freetype")]
+pub use crate::ft_generate::*;
 pub use crate::tools::*;
-pub use proto::glyphs::{Fontstack, Glyph, Glyphs};

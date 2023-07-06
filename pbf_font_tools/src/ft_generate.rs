@@ -1,8 +1,9 @@
-use crate::error::PbfFontError;
-use crate::freetype;
-use crate::{Fontstack, Glyph, Glyphs};
-use sdf_glyph_renderer::{clamp_to_u8, render_sdf_from_face};
 use std::path::Path;
+
+use sdf_glyph_renderer::{clamp_to_u8, render_sdf_from_face};
+
+use crate::error::PbfFontError;
+use crate::{freetype, Fontstack, Glyph, Glyphs};
 
 fn render_sdf_glyph(
     face: &freetype::Face,
@@ -44,19 +45,16 @@ pub fn glyph_range_for_face(
     radius: usize,
     cutoff: f64,
 ) -> Result<Fontstack, PbfFontError> {
-    let Some(family_name) = face.family_name() else {
+    let Some(mut family_name) = face.family_name() else {
         return Err(PbfFontError::MissingFontFamilyName)?;
     };
+    if let Some(style_name) = face.style_name() {
+        family_name.push(' ');
+        family_name.push_str(&style_name);
+    }
 
     let mut stack = Fontstack::new();
-
-    let stack_name = if let Some(style_name) = face.style_name() {
-        format!("{family_name} {style_name}")
-    } else {
-        family_name
-    };
-
-    stack.set_name(stack_name);
+    stack.set_name(family_name);
     stack.set_range(format!("{start}-{end}"));
 
     // FreeType conventions: char width or height of zero means "use the same value"
@@ -68,8 +66,7 @@ pub fn glyph_range_for_face(
     face.set_char_size(0, (size << 6) as isize, 0, 0)?;
 
     for char_code in start..=end {
-        let result = render_sdf_glyph(face, char_code, 3, radius, cutoff);
-        match result {
+        match render_sdf_glyph(face, char_code, 3, radius, cutoff) {
             Ok(glyph) => {
                 stack.glyphs.push(glyph);
             }
@@ -100,6 +97,7 @@ pub fn glyph_range_for_font<P: AsRef<Path>>(
     let num_faces = face.num_faces();
 
     let mut result = Glyphs::new();
+    result.stacks.reserve(num_faces as usize);
 
     for face_index in 0..num_faces {
         if face_index > 0 {

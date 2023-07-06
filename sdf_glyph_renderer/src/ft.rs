@@ -1,7 +1,7 @@
-use freetype::{face::LoadFlag, Face};
+use freetype::face::LoadFlag;
+use freetype::Face;
 
-use crate::BitmapGlyph;
-use crate::SdfGlyphError;
+use crate::{BitmapGlyph, SdfGlyphError};
 
 pub struct SdfGlyph {
     pub sdf: Vec<f64>,

@@ -1,12 +1,14 @@
-use crate::proto::glyphs::{Fontstack, Glyphs};
-use crate::PbfFontError;
-use crate::PbfFontError::MissingFontFamilyName;
-use futures::future::try_join_all;
-use protobuf::Message;
 use std::collections::HashSet;
 use std::fs::File;
 use std::path::Path;
+
+use futures::future::try_join_all;
+use protobuf::Message;
 use tokio::task::spawn_blocking;
+
+use crate::proto::glyphs::{Fontstack, Glyphs};
+use crate::PbfFontError;
+use crate::PbfFontError::MissingFontFamilyName;
 
 /// Generates a single combined font stack for the set of fonts provided.
 ///

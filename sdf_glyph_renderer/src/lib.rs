@@ -27,9 +27,10 @@ pub use crate::error::SdfGlyphError;
 
 #[cfg(feature = "freetype")]
 mod ft;
-#[cfg(feature = "freetype")]
-pub use crate::ft::*;
 
 // Re-export freetype crate if the feature is enabled
 #[cfg(feature = "freetype")]
 pub use freetype;
+
+#[cfg(feature = "freetype")]
+pub use crate::ft::*;
