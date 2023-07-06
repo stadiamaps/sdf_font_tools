@@ -1,19 +1,19 @@
 [package]
 name = "sdf_glyph_renderer"
 version = "0.6.0"
-authors = ["Ian Wagner <ian@stadiamaps.com>", "Luke Seelenbinder <luke@stadiamaps.com>", "Yuri Astrakhan <YuriAstrakhan@gmail.com>"]
-license = "BSD-3-Clause"
-repository = "https://github.com/stadiamaps/sdf_glyph_renderer"
-readme = "README.md"
 description = "Tools for generating SDF font glyphs from bitmap images."
+readme = "README.md"
 keywords = ["sdf", "fonts", "glyphs"]
 categories = ["rendering::data-formats", "graphics", "algorithms", "encoding"]
-edition = "2021"
-exclude = [".github/"]
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+license.workspace = true
 
 [features]
 freetype = ["dep:freetype-rs"]
 
 [dependencies]
-thiserror = "1.0.40"
-freetype-rs = { version = "0.32.0", optional = true }
+freetype-rs = { workspace = true, optional = true }
+thiserror.workspace = true

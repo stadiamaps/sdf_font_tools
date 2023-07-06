@@ -26,7 +26,7 @@ pub async fn get_named_font_stack<P: AsRef<Path>>(
     // Load fonts
     let glyph_data = try_join_all(
         font_names
-            .into_iter()
+            .iter()
             .map(|font| load_glyphs(font_path.as_ref(), font, start, end)),
     )
     .await?;
@@ -122,7 +122,7 @@ pub fn combine_glyphs(glyphs_to_combine: Vec<Glyphs>) -> Option<Glyphs> {
         }
     }
 
-    if combined_stack.is_empty() {
+    if coverage.is_empty() {
         return None;
     }
 
