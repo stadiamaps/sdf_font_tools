@@ -12,7 +12,7 @@ like Mapbox GL.
 
 If you're looking for a CLI tool to generate PBF ranges en masse like
 [node-fontnik](https://github.com/mapbox/node-fontnik)), but faster,
-check out [build_pbf_glyphs](https://github.com/stadiamaps/build_pbf_glyphs).
+check out [build_pbf_glyphs](https://github.com/stadiamaps/sdf_font_tools/tree/main/build_pbf_glyphs).
 
 NOTE: This has been developed and tested against FreeType 2.10. It will work against
 older versions, but the glyph generation tests may not pass as the rendering

@@ -19,9 +19,9 @@ generate the bitmap. This is quite fast (we're talking µs/glyph), and the resul
 almost always indistinguishable from the more sophisticated vector-based approach of
 [sdf-glyph-foundry](https://github.com/mapbox/sdf-glyph-foundry).
 
-This crate is used by [pbf_font_tools](https://github.com/stadiamaps/pbf_font_tools) to generate
+This crate is used by [pbf_font_tools](https://github.com/stadiamaps/sdf_font_tools/tree/main/pbf_font_tools) to generate
 SDF glyphs from any FreeType-readable font. If you're looking for a batch generation tool,
-check out [build_pbf_glyphs](https://github.com/stadiamaps/build_pbf_glyphs).
+check out [build_pbf_glyphs](https://github.com/stadiamaps/sdf_font_tools/tree/main/build_pbf_glyphs).
 
 # Example Usage
 
