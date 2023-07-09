@@ -17,6 +17,8 @@ mod tools;
 #[cfg(feature = "freetype")]
 mod ft_generate;
 pub use proto::glyphs::{Fontstack, Glyph, Glyphs};
+// Re-export protobuf lib
+pub use protobuf;
 // Re-export freetype lib
 #[cfg(feature = "freetype")]
 pub use sdf_glyph_renderer::freetype;

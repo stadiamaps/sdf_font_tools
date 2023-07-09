@@ -5,7 +5,8 @@ use sdf_glyph_renderer::{clamp_to_u8, render_sdf_from_face};
 use crate::error::PbfFontError;
 use crate::{freetype, Fontstack, Glyph, Glyphs};
 
-fn render_sdf_glyph(
+/// Renders a single glyph for the given font face into a Glyph message.
+pub fn render_sdf_glyph(
     face: &freetype::Face,
     char_code: u32,
     buffer: usize,
