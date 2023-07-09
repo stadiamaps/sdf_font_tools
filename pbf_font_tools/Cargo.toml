@@ -1,30 +1,30 @@
 [package]
 name = "pbf_font_tools"
-version = "2.3.0"
-authors = ["Ian Wagner <ian@stadiamaps.com>", "Luke Seelenbinder <luke@stadiamaps.com>"]
-license = "BSD-3-Clause"
-repository = "https://github.com/stadiamaps/pbf_font_tools"
-readme = "README.md"
+version = "2.4.0"
 description = "Tools for working with SDF font glyphs encoded in protobuf format."
+readme = "README.md"
 keywords = ["sdf", "protobuf", "fonts"]
 categories = ["encoding", "parsing", "rendering::data-formats"]
-edition = "2021"
-exclude = [".github/"]
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+license.workspace = true
 
 [features]
-freetype = ["freetype-rs", "sdf_glyph_renderer/freetype"]
+freetype = ["dep:sdf_glyph_renderer"]
 
 [dependencies]
-freetype-rs = { version = "0.32.0", optional = true }
-futures = "0.3.28"
-protobuf = "3.2.0"
-sdf_glyph_renderer = { version = "0.5.1", optional = true }
-tokio = { version = "1.28.2", features = ["rt"] }
+futures.workspace = true
+protobuf.workspace = true
+sdf_glyph_renderer = { workspace = true, optional = true }
+thiserror.workspace = true
+tokio.workspace = true
 
 [dev-dependencies]
-tokio = { version = "1.28.2", features = ["rt", "fs", "io-util", "macros"] }
+tokio = { workspace = true, features = ["fs", "io-util", "macros"] }
 
 [build-dependencies]
-glob = "0.3.1"
-protobuf-codegen = "3.2.0"
-protoc-bin-vendored = "3.0.0"
+glob.workspace = true
+protobuf-codegen.workspace = true
+protoc-bin-vendored.workspace = true

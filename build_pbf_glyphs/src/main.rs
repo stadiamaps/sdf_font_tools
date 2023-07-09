@@ -27,17 +27,15 @@
 //! ```
 
 use std::collections::HashMap;
-use std::ops::Deref;
-use std::{
-    fs::{create_dir_all, read_dir, File},
-    path::{Path, PathBuf},
-    sync::atomic::{AtomicUsize, Ordering},
-    thread,
-    time::Instant,
-};
+use std::fs::{create_dir_all, File};
+use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicUsize, Ordering};
+use std::thread;
+use std::time::Instant;
 
 use clap::{command, crate_authors, crate_description, crate_version, Arg};
-use freetype::{Face, Library};
+use pbf_font_tools::freetype::{Face, Library};
+use pbf_font_tools::{get_named_font_stack, glyph_range_for_face, Glyphs};
 use protobuf::{CodedOutputStream, Message};
 use spmc::{channel, Receiver};
 
@@ -47,7 +45,7 @@ static TOTAL_GLYPHS_RENDERED: AtomicUsize = AtomicUsize::new(0);
 /// with name `stack_name`.
 ///
 /// The font name list will be used as the order of precedence.
-async fn combine_glyphs(font_path: PathBuf, font_names: &[&str], stack_name: String) {
+async fn combine_glyphs(font_path: &Path, font_names: &[&str], stack_name: String) {
     let out_dir = font_path.join(&stack_name);
     create_dir_all(&out_dir).expect("Unable to create output directory");
 
@@ -56,20 +54,14 @@ async fn combine_glyphs(font_path: PathBuf, font_names: &[&str], stack_name: Str
     let mut glyphs_combined = 0;
 
     while start < 65536 {
-        let stack = pbf_font_tools::get_named_font_stack(
-            &font_path,
-            font_names,
-            stack_name.clone(),
-            start,
-            end,
-        )
-        .await
-        .expect("Unable to load font stack");
+        let stack = get_named_font_stack(font_path, font_names, stack_name.clone(), start, end)
+            .await
+            .expect("Unable to load font stack");
 
         // The above utility always returns a single stack
         glyphs_combined += stack.stacks[0].glyphs.len();
 
-        let mut file = File::create(out_dir.join(format!("{}-{}.pbf", start, end)))
+        let mut file = File::create(out_dir.join(format!("{start}-{end}.pbf")))
             .expect("Unable to create file");
         let mut cos = CodedOutputStream::new(&mut file);
         stack.write_to(&mut cos).expect("Unable to write");
@@ -80,20 +72,18 @@ async fn combine_glyphs(font_path: PathBuf, font_names: &[&str], stack_name: Str
     }
 
     println!(
-        "Combined {} glyphs from [{}] into {}",
-        glyphs_combined,
-        font_names.join(", "),
-        stack_name
+        "Combined {glyphs_combined} glyphs from [{}] into {stack_name}",
+        font_names.join(", ")
     );
 }
 
 /// A worker function that converts a font to a set of SDF glyphs.
 ///
 /// The glyphs are output as a set of files in a directory where each file contains
-/// exactly 255 glyphs and is named like so: `<base_out_dir>/<font name>/<start>-<end>.pbf`
-/// where the start and end numbers represent the unicade code point.
+/// exactly 256 glyphs and is named like so: `<base_out_dir>/<font name>/<start>-<end>.pbf`
+/// where the start and end numbers represent the Unicode code point.
 fn render_worker(
-    base_out_dir: PathBuf,
+    base_out_dir: &Path,
     overwrite: bool,
     radius: usize,
     cutoff: f64,
@@ -105,9 +95,12 @@ fn render_worker(
         let out_dir = base_out_dir.join(stem.to_str().expect("Unable to extract file stem"));
         create_dir_all(&out_dir).expect("Unable to create output directory");
 
-        println!("Processing {}", path.to_str().unwrap());
+        println!("Processing {}", path.display());
 
         // Load the font once to save useless I/O
+        // FIXME: lib.new_face is called twice for face_index=0
+        //        instead, call it once, create a pre-allocated vector of faces for num_faces count
+        //        add the already open 0th, and add all remaining ones to it
         let face = lib.new_face(&path, 0).expect("Unable to load font");
         let num_faces = face.num_faces() as usize;
         let faces: Vec<Face> = (0..num_faces)
@@ -126,23 +119,20 @@ fn render_worker(
             .expect("Unable to convert path to a valid UTF-8 string.");
 
         while start < 65536 {
-            let glyph_path = out_dir.join(format!("{}-{}.pbf", start, end));
-            if !overwrite && Path::exists(&glyph_path) {
+            let glyph_path = out_dir.join(format!("{start}-{end}.pbf"));
+            if !overwrite && glyph_path.exists() {
                 glyphs_skipped += 256;
             } else {
-                let mut glyphs = pbf_font_tools::glyphs::Glyphs::new();
+                let mut glyphs = Glyphs::new();
 
                 for (face_index, face) in faces.iter().enumerate() {
-                    if let Ok(stack) = pbf_font_tools::generate::glyph_range_for_face(
-                        face, start, end, 24, radius, cutoff,
-                    ) {
+                    if let Ok(stack) = glyph_range_for_face(face, start, end, 24, radius, cutoff) {
                         glyphs_rendered += stack.glyphs.len();
                         glyphs.stacks.push(stack);
                     } else {
                         println!(
-                            "ERROR: Failed to render fontstack for face {} in {}",
-                            face_index, path_str
-                        )
+                            "ERROR: Failed to render fontstack for face {face_index} in {path_str}",
+                        );
                     }
                 }
 
@@ -157,12 +147,11 @@ fn render_worker(
         }
 
         if glyphs_skipped > 0 {
-            println!("Skipped up to {} glyphs in {}", glyphs_skipped, path_str);
+            println!("Skipped up to {glyphs_skipped} glyphs in {path_str}");
         }
         if glyphs_skipped != 65536 {
             println!(
-                "Found {} valid glyphs across {} face(s) in {}",
-                glyphs_rendered, num_faces, path_str
+                "Found {glyphs_rendered} valid glyphs across {num_faces} face(s) in {path_str}"
             );
         }
 
@@ -202,19 +191,20 @@ fn main() {
 
     let (mut tx, rx) = channel();
     let num_threads = num_cpus::get();
-    println!("Starting {} worker threads...", num_threads);
+    println!("Starting {num_threads} worker threads...");
 
     let join_handles: Vec<_> = (0..num_threads)
         .map(|_| {
             let out_dir = out_dir.clone();
             let rx = rx.clone();
-            thread::spawn(move || render_worker(out_dir, overwrite, 8, 0.25, rx))
+            thread::spawn(move || render_worker(&out_dir, overwrite, 8, 0.25, rx))
         })
         .collect();
 
     let render_start = Instant::now();
 
-    for dir_entry in read_dir(font_dir)
+    for dir_entry in font_dir
+        .read_dir()
         .expect("Unable to open font directory")
         .flatten()
     {
@@ -245,8 +235,7 @@ fn main() {
         let duration_per_glyph = render_duration / total_glyphs_rendered as u32;
 
         println!(
-            "Rendered {} glyph(s) in {:?} ({:?}/glyph)",
-            total_glyphs_rendered, render_duration, duration_per_glyph
+            "Rendered {total_glyphs_rendered} glyph(s) in {render_duration:?} ({duration_per_glyph:?}/glyph)"
         );
     }
 
@@ -261,15 +250,15 @@ fn main() {
             .build()
             .unwrap()
             .block_on(async {
-                let data = tokio::fs::read(Path::new(path))
+                let data = tokio::fs::read(path)
                     .await
                     .expect("Unable to read combination spec.");
                 let combinations: HashMap<String, Vec<String>> =
                     serde_json::from_slice(&data).expect("Unable to parse combination spec.");
-                for (name, fonts) in combinations.iter() {
-                    let fonts: Vec<&str> = fonts.iter().map(|item| item.deref()).collect();
-                    combine_glyphs(out_dir.clone(), &fonts, name.clone()).await
+                for (name, fonts) in combinations {
+                    let fonts: Vec<&str> = fonts.iter().map(|item| item.as_str()).collect();
+                    combine_glyphs(&out_dir, &fonts, name.clone()).await;
                 }
-            })
+            });
     }
 }

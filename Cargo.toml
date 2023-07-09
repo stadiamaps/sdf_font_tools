@@ -1,2 +1,25 @@
 [workspace]
 members = ["sdf_glyph_renderer", "pbf_font_tools", "build_pbf_glyphs"]
+
+[workspace.package]
+authors = ["Ian Wagner <ian@stadiamaps.com>", "Luke Seelenbinder <luke@stadiamaps.com>", "Yuri Astrakhan <YuriAstrakhan@gmail.com>"]
+edition = "2021"
+license = "BSD-3-Clause"
+repository = "https://github.com/stadiamaps/sdf_font_tools"
+rust-version = "1.65"
+
+[workspace.dependencies]
+clap = { version = "3.2.25", features = ["cargo"] }
+freetype-rs = { version = "0.32.0" }
+futures = "0.3.28"
+glob = "0.3.1"
+num_cpus = "1.16.0"
+pbf_font_tools = { version = "2.3.0", features = ["freetype"], path = "pbf_font_tools" }
+protobuf = "3.2.0"
+protobuf-codegen = "3.2.0"
+protoc-bin-vendored = "3.0.0"
+sdf_glyph_renderer = { version = "0.6.0", features = ["freetype"], path = "sdf_glyph_renderer" }
+serde_json = "1.0.100"
+spmc = "0.3.0"
+thiserror = "1.0.41"
+tokio = { version = "1.29.1", features = ["rt"] }
