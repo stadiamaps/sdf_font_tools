@@ -616,7 +616,7 @@ checksum = "fe232bdf6be8c8de797b22184ee71118d63780ea42ac85b61d1baa6d3b782ae9"
 
 [[package]]
 name = "sdf_glyph_renderer"
-version = "0.6.0"
+version = "1.0.0"
 dependencies = [
  "freetype-rs",
  "thiserror",

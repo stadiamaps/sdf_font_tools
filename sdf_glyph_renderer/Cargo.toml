@@ -1,6 +1,6 @@
 [package]
 name = "sdf_glyph_renderer"
-version = "0.6.0"
+version = "1.0.0"
 description = "Tools for generating SDF font glyphs from bitmap images."
 readme = "README.md"
 keywords = ["sdf", "fonts", "glyphs"]
