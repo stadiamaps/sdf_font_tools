@@ -407,7 +407,7 @@ checksum = "4d5d9eb14b174ee9aa2ef96dc2b94637a2d4b6e7cb873c7e171f0c20c6cf3eac"
 
 [[package]]
 name = "pbf_font_tools"
-version = "2.4.0"
+version = "2.5.0"
 dependencies = [
  "futures",
  "glob",
