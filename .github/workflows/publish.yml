@@ -33,15 +33,9 @@ jobs:
               echo "Invalid prefix in tag: $PREFIX"
               exit 1
           esac
-          cd $CRATE_NAME
-          cargo publish --all-features
-      - name: Publish
-        uses: actions-rs/cargo@v1
+          cargo publish --all-features -p $CRATE_NAME
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-        with:
-          command: publish
-          args: --all-features
 
   publish_cli_binary:
     name: Release build with ${{ matrix.os }}
