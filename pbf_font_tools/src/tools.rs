@@ -2,7 +2,7 @@ use std::collections::HashSet;
 use std::fs::File;
 use std::path::Path;
 
-use futures::future::try_join_all;
+use futures::future::join_all;
 use protobuf::Message;
 use tokio::task::spawn_blocking;
 
@@ -25,13 +25,17 @@ pub async fn get_named_font_stack<P: AsRef<Path>>(
     if font_names.is_empty() {
         return Err(MissingFontFamilyName);
     }
+
     // Load fonts
-    let glyph_data = try_join_all(
+    let glyph_data = join_all(
         font_names
             .iter()
             .map(|font| load_glyphs(font_path.as_ref(), font, start, end)),
     )
-    .await?;
+    .await
+    .into_iter()
+    .filter_map(|g| g.ok())
+    .collect();
 
     // Combine all the glyphs into a single instance, using the ordering to determine priority.
     // This can take some time, so mark it blocking.

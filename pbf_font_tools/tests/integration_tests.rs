@@ -23,6 +23,30 @@ async fn test_load_glyphs() {
 }
 
 #[tokio::test]
+async fn test_get_named_font_stack() {
+    let font_path = Path::new("tests").join("glyphs");
+    let fonts = &["Empty Light", "SeoulNamsan L"];
+    let result = pbf_font_tools::get_named_font_stack(
+        font_path.as_path(),
+        fonts,
+        "Test".to_string(),
+        0,
+        255,
+    )
+    .await;
+
+    match result {
+        Ok(glyphs) => {
+            let stack = &glyphs.stacks[0];
+            let glyph_count = stack.glyphs.len();
+            assert_eq!(stack.name, Some(String::from(fonts[1])));
+            assert_eq!(glyph_count, 170);
+        }
+        Err(e) => panic!("Encountered error {e:#?}."),
+    }
+}
+
+#[tokio::test]
 async fn test_get_font_stack() {
     let font_path = Path::new("tests").join("glyphs");
     let font_names = vec!["SeoulNamsan L", "Open Sans Light"];
