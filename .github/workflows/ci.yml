@@ -26,15 +26,15 @@ jobs:
         run: cargo fmt --all -- --check
 
       - name: Test Debug
-        run: cargo test --workspace --all-features
+        run: cargo test --workspace --all-features --locked
 
       - name: Test Release
-        run: cargo test --workspace --release --all-features
+        run: cargo test --workspace --release --all-features --locked
 
       - name: Lint
         run: cargo clippy --workspace --all-targets --all-features -- -D warnings
 
       - name: Test docs
         run: |
-          cargo test --workspace --release --doc
+          cargo test --workspace --release --doc --locked
           RUSTDOCFLAGS="-D warnings" cargo doc --workspace --release --no-deps

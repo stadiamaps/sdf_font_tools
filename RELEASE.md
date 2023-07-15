@@ -10,5 +10,5 @@ Always release `sdf_glyph_renderer` first.
 Create releases with tags according to the following convention.
 
 * `sdf-vX.Y.Z` for `sdf_glyph_renderer` releases. Release this before other crates.
-* `tools-vX.Y.Z` for `pbf_fost_tools` releases. Release this next.
+* `tools-vX.Y.Z` for `pbf_font_tools` releases. Release this next.
 * `cli-vX.Y.Z` for `build_pbf_glyphs` releases. Release this last.
