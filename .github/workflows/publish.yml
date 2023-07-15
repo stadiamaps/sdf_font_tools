@@ -66,3 +66,5 @@ jobs:
         run: |
           mv target/release/build_pbf_glyphs target/release/build_pbf_glyphs.${{ matrix.target }}
           gh release upload ${{ github.event.release.tag_name }} target/release/build_pbf_glyphs.${{ matrix.target }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
