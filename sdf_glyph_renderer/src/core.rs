@@ -165,8 +165,11 @@ impl BitmapGlyph {
 /// See page 6 (420) of [paper](http://cs.brown.edu/people/pfelzens/papers/dt-final.pdf) for details and
 /// further discussion of the math behind this.
 fn dt(grid: &mut [f64], offset: usize, step_by: usize, size: usize) {
-    // For our purposes, f is a one-dimensional slice of the grid
-    let f: Vec<f64> = grid.iter().skip(offset).step_by(step_by).copied().collect();
+    macro_rules! f {
+        ($i:expr) => {{
+            grid[offset + $i * step_by]
+        }};
+    }
 
     // It may be possible to make this more functional in style,
     // but for now this is more or less a "dumb" transcription of
@@ -184,7 +187,7 @@ fn dt(grid: &mut [f64], offset: usize, step_by: usize, size: usize) {
             let q2 = (q * q) as f64;
             let vk2 = (v[k] * v[k]) as f64;
             let denom = (2 * q - 2 * v[k]) as f64;
-            s = ((f[q] + q2) - (f[v[k]] + vk2)) / denom;
+            s = ((f![q] + q2) - (f![v[k]] + vk2)) / denom;
 
             if s <= z[k] {
                 k -= 1;
@@ -206,7 +209,7 @@ fn dt(grid: &mut [f64], offset: usize, step_by: usize, size: usize) {
             k += 1;
         }
         let vkf64 = v[k] as f64;
-        grid[offset + q * step_by] = (qf64 - vkf64) * (qf64 - vkf64) + f[v[k]];
+        grid[offset + q * step_by] = (qf64 - vkf64) * (qf64 - vkf64) + f![v[k]];
     }
 }
 
