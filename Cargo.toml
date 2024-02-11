@@ -1,12 +1,13 @@
 [workspace]
 members = ["sdf_glyph_renderer", "pbf_font_tools", "build_pbf_glyphs"]
+resolver = "2"
 
 [workspace.package]
 authors = ["Ian Wagner <ian@stadiamaps.com>", "Luke Seelenbinder <luke@stadiamaps.com>", "Yuri Astrakhan <YuriAstrakhan@gmail.com>"]
 edition = "2021"
 license = "BSD-3-Clause"
 repository = "https://github.com/stadiamaps/sdf_font_tools"
-rust-version = "1.65"
+rust-version = "1.70.0"
 
 [workspace.dependencies]
 clap = { version = "3.2.25", features = ["cargo"] }
