@@ -1,6 +1,6 @@
 [package]
 name = "pbf_font_tools"
-version = "2.5.0"
+version = "2.5.1"
 description = "Tools for working with SDF font glyphs encoded in protobuf format."
 readme = "README.md"
 keywords = ["sdf", "protobuf", "fonts"]

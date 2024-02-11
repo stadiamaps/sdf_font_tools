@@ -47,7 +47,7 @@ pub fn glyph_range_for_face(
     cutoff: f64,
 ) -> Result<Fontstack, PbfFontError> {
     let Some(mut family_name) = face.family_name() else {
-        return Err(PbfFontError::MissingFontFamilyName)?;
+        return Err(PbfFontError::MissingFontFamilyName);
     };
     if let Some(style_name) = face.style_name() {
         family_name.push(' ');
