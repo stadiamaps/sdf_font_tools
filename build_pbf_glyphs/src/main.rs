@@ -48,7 +48,7 @@ struct Args {
     font_dir: String,
     /// Sets the output directory in which the PBF glyphs will be placed (each font will be placed in a new subdirectory with appropriately named PBF files).
     out_dir: String,
-    /// Path to a file containing a set of glyph combination specifications. The file should contain a JSON dictionary having a format like so: {\"New Font Name\": \[\"Font 1\", \"Font 2\"]}.
+    /// Path to a file containing a set of glyph combination specifications. The file should contain a JSON dictionary having a format like so: {"New Font Name": ["Font 1", "Font 2"]}.
     #[arg(short, long = "combinations")]
     combinations_path: Option<String>,
     /// Overwrites existing glyphs. By default, glyph generation will be skipped for any range with a matching file in the output directory. Note that the contents of the file are not inspected; only the name.
