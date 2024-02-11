@@ -50,15 +50,13 @@ pub fn render_sdf_from_face(
         .ascender
         >> 6) as i32;
 
-    let glyph_index = face.get_char_index(char_code as usize);
-    if glyph_index == 0 {
-        // See also https://github.com/PistonDevelopers/freetype-rs/pull/252
+    let Ok(glyph_index) = face.get_char_index(char_code as usize) else {
         return Err(SdfGlyphError::FreeTypeError(
             freetype::Error::InvalidGlyphIndex,
         ));
-    }
+    };
 
-    face.load_glyph(glyph_index, LoadFlag::NO_HINTING | LoadFlag::RENDER)?;
+    face.load_glyph(glyph_index.get(), LoadFlag::NO_HINTING | LoadFlag::RENDER)?;
 
     let glyph = face.glyph();
     let glyph_bitmap = glyph.bitmap();
