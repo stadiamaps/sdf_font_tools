@@ -42,12 +42,12 @@ use spmc::{channel, Receiver};
 static TOTAL_GLYPHS_RENDERED: AtomicUsize = AtomicUsize::new(0);
 
 #[derive(Parser, Debug)]
-#[command(version, author, about, long_about = None)]
+#[command(version, author, about)]
 struct Args {
     /// Sets the source directory to be scanned for fonts.
-    font_dir: String,
+    font_dir: PathBuf,
     /// Sets the output directory in which the PBF glyphs will be placed (each font will be placed in a new subdirectory with appropriately named PBF files).
-    out_dir: String,
+    out_dir: PathBuf,
     /// Path to a file containing a set of glyph combination specifications. The file should contain a JSON dictionary having a format like so: {"New Font Name": ["Font 1", "Font 2"]}.
     #[arg(short, long = "combinations")]
     combinations_path: Option<String>,
@@ -177,8 +177,8 @@ fn render_worker(
 fn main() {
     let args = Args::parse();
 
-    let font_dir = Path::new(&args.font_dir);
-    let out_dir = PathBuf::from(&args.out_dir);
+    let font_dir = &args.font_dir;
+    let out_dir = &args.out_dir;
 
     let (mut tx, rx) = channel();
     let num_threads = num_cpus::get();
@@ -248,7 +248,7 @@ fn main() {
                     serde_json::from_slice(&data).expect("Unable to parse combination spec.");
                 for (name, fonts) in combinations {
                     let fonts: Vec<&str> = fonts.iter().map(|item| item.as_str()).collect();
-                    combine_glyphs(&out_dir, &fonts, name.clone()).await;
+                    combine_glyphs(out_dir, &fonts, name.clone()).await;
                 }
             });
     }
