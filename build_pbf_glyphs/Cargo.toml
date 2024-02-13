@@ -1,6 +1,6 @@
 [package]
 name = "build_pbf_glyphs"
-version = "1.4.1"
+version = "1.4.2"
 description = "A CLI utility for generating protobuf-encoded SDF font glyphs from original source fonts."
 readme = "README.md"
 keywords = ["sdf", "protobuf", "fonts"]

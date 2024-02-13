@@ -33,13 +33,28 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::thread;
 use std::time::Instant;
 
-use clap::{command, crate_authors, crate_description, crate_version, Arg};
+use clap::{command, Parser};
 use pbf_font_tools::freetype::{Face, Library};
 use pbf_font_tools::{get_named_font_stack, glyph_range_for_face, Glyphs};
 use protobuf::{CodedOutputStream, Message};
 use spmc::{channel, Receiver};
 
 static TOTAL_GLYPHS_RENDERED: AtomicUsize = AtomicUsize::new(0);
+
+#[derive(Parser, Debug)]
+#[command(version, author, about)]
+struct Args {
+    /// Sets the source directory to be scanned for fonts.
+    font_dir: PathBuf,
+    /// Sets the output directory in which the PBF glyphs will be placed (each font will be placed in a new subdirectory with appropriately named PBF files).
+    out_dir: PathBuf,
+    /// Path to a file containing a set of glyph combination specifications. The file should contain a JSON dictionary having a format like so: {"New Font Name": ["Font 1", "Font 2"]}.
+    #[arg(short, long = "combinations")]
+    combinations_path: Option<String>,
+    /// Overwrites existing glyphs. By default, glyph generation will be skipped for any range with a matching file in the output directory. Note that the contents of the file are not inspected; only the name.
+    #[arg(long)]
+    overwrite: bool,
+}
 
 /// Combines glyphs for all fonts listed in `font_names` in `font_path` into a single stack
 /// with name `stack_name`.
@@ -160,34 +175,10 @@ fn render_worker(
 }
 
 fn main() {
-    let matches = command!()
-        .author(crate_authors!())
-        .version(crate_version!())
-        .before_help(crate_description!())
-        .arg(Arg::new("FONT_DIR")
-            .help("Sets the source directory to be scanned for fonts")
-            .required(true)
-            .index(1))
-        .arg(Arg::new("OUT_DIR")
-            .help("Sets the output directory in which the PBF glyphs will be placed (each font will be placed in a new subdirectory with appropriately named PBF files)")
-            .required(true)
-            .index(2))
-        .arg(Arg::new("COMBINATION_SPEC")
-            .help("Path to a file containing a set of glyph combination specifications. The file should contain a JSON dictionary having a format like so: {\"New Font Name\": [\"Font 1\", \"Font 2\"]}")
-            .required(false)
-            .short('c')
-            .long("combinations")
-            .takes_value(true))
-        .arg(Arg::new("OVERWRITE")
-            .help("Overwrite existing glyphs; by default, glyph generation will be skipped for any range with a matching file in the output directory. Note that the contents of the file are not inspected; only the name.")
-            .required(false)
-            .long("overwrite")
-            .takes_value(false))
-        .get_matches();
+    let args = Args::parse();
 
-    let font_dir = Path::new(matches.get_one::<String>("FONT_DIR").unwrap());
-    let out_dir = PathBuf::from(matches.get_one::<String>("OUT_DIR").unwrap());
-    let overwrite = matches.is_present("OVERWRITE");
+    let font_dir = &args.font_dir;
+    let out_dir = &args.out_dir;
 
     let (mut tx, rx) = channel();
     let num_threads = num_cpus::get();
@@ -197,7 +188,7 @@ fn main() {
         .map(|_| {
             let out_dir = out_dir.clone();
             let rx = rx.clone();
-            thread::spawn(move || render_worker(&out_dir, overwrite, 8, 0.25, rx))
+            thread::spawn(move || render_worker(&out_dir, args.overwrite, 8, 0.25, rx))
         })
         .collect();
 
@@ -239,7 +230,7 @@ fn main() {
         );
     }
 
-    if let Some(path) = matches.get_one::<String>("COMBINATION_SPEC") {
+    if let Some(path) = args.combinations_path {
         // Async code, as necessary. Most of the rest of the code is actually truly blocking
         // since it's calling C libs or compute-heavy functions. Glyph combination however
         // happens to actually leverage async I/O, so we fire up a runtime here. It makes
@@ -257,7 +248,7 @@ fn main() {
                     serde_json::from_slice(&data).expect("Unable to parse combination spec.");
                 for (name, fonts) in combinations {
                     let fonts: Vec<&str> = fonts.iter().map(|item| item.as_str()).collect();
-                    combine_glyphs(&out_dir, &fonts, name.clone()).await;
+                    combine_glyphs(out_dir, &fonts, name.clone()).await;
                 }
             });
     }
