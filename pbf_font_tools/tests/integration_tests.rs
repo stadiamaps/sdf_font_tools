@@ -99,7 +99,7 @@ async fn test_get_font_stack() {
                         namsan_glyph.eq(&glyph.bitmap.clone().unwrap()),
                         "Encountered glyph where Namsan was overwritten by Open Sans."
                     );
-                } else if open_sans_mapping.get(&glyph.id.unwrap()).is_some() {
+                } else if open_sans_mapping.contains_key(&glyph.id.unwrap()) {
                     has_open_sans_glyph = true;
                 } else {
                     panic!("Uh, where did this glyph come from?");

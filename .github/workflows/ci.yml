@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check semver
         uses: obi1kenobi/cargo-semver-checks-action@v2
 
@@ -32,12 +32,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
+      - uses: Swatinem/rust-cache@v2
+        if: github.event_name != 'release' && github.event_name != 'workflow_dispatch'
 
       - name: Report Rust version
-        run: |
-          rustc --version
-          cargo --version
+        run: rustc --version && cargo --version
 
       - name: Run fmt
         run: cargo fmt --all -- --check
@@ -55,3 +56,33 @@ jobs:
         run: |
           cargo test --workspace --release --doc --locked
           RUSTDOCFLAGS="-D warnings" cargo doc --workspace --release --no-deps
+
+
+  multi-os-test:
+    name: Test on multiple OS
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          # This is not an exhaustive list of runners, just the more recent ones
+          - ubuntu-latest
+          - ubuntu-24.04
+          - ubuntu-22.04
+          - macos-latest
+          - macos-13
+          - macos-14  # M1 CPU
+          - windows-latest
+          - windows-2022
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: Swatinem/rust-cache@v2
+        if: github.event_name != 'release' && github.event_name != 'workflow_dispatch'
+
+      - name: Report Rust version
+        run: rustc --version && cargo --version
+
+      - name: Run tests
+        run: cargo test --workspace --all-features --locked
