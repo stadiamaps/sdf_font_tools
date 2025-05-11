@@ -166,7 +166,12 @@ impl BitmapGlyph {
 /// further discussion of the math behind this.
 fn dt(grid: &mut [f64], offset: usize, step_by: usize, size: usize) {
     // For our purposes, f is a one-dimensional slice of the grid
-    let f: Vec<f64> = grid.iter().skip(offset).step_by(step_by).copied().collect();
+    let mut f = vec![0.0; size];
+    let mut src = offset;
+    for dst in 0..size {
+        f[dst] = grid[src];
+        src += step_by;
+    }
 
     // It may be possible to make this more functional in style,
     // but for now this is more or less a "dumb" transcription of
