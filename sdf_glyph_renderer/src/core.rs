@@ -25,7 +25,7 @@ impl BitmapGlyph {
     /// bitmap but still need to buffer it (what you expect from most font renderers, for example),
     /// use [`Self::from_unbuffered()`] instead.
     ///
-    /// The dimensions provided is expected to describe the input data.
+    /// The dimensions provided are expected to describe the input data.
     pub fn new(
         alpha: Vec<u8>,
         width: usize,
@@ -153,9 +153,7 @@ impl BitmapGlyph {
                 // Determine the euclidean distance inside or outside the alpha mask, then
                 // clamp the range according to the radius so that the overall range of the
                 // output field is [-1, 1] as a percentage of the radius.
-                ((outer_df.sqrt() - inner_df.sqrt()) / radius as f64)
-                    .min(1.0)
-                    .max(-1.0)
+                ((outer_df.sqrt() - inner_df.sqrt()) / radius as f64).clamp(-1.0, 1.0)
             })
             .collect()
     }
@@ -166,10 +164,10 @@ impl BitmapGlyph {
 /// further discussion of the math behind this.
 fn dt(grid: &mut [f64], offset: usize, step_by: usize, size: usize) {
     // For our purposes, f is a one-dimensional slice of the grid
-    let mut f = vec![0.0; size];
+    let mut f = vec![0f64; size];
     let mut src = offset;
-    for dst in 0..size {
-        f[dst] = grid[src];
+    for dst in f.iter_mut() {
+        *dst = grid[src];
         src += step_by;
     }
 
@@ -217,7 +215,7 @@ fn dt(grid: &mut [f64], offset: usize, step_by: usize, size: usize) {
 
 /// Compresses a `Vec<f64>` into a `Vec<u8>` for efficiency.
 ///
-/// The highest `cutoff` percent of values in the range (0-255) will be used to encode
+/// The highest `cutoff` percentage of values in the range (0-255) will be used to encode
 /// negative values (points inside the glyph). This can be tuned based on the intended
 /// application.
 ///
@@ -278,7 +276,7 @@ mod tests {
     #[test]
     #[allow(clippy::unreadable_literal)]
     fn test_nontrivial_glyph() {
-        // Tests an nontrivial glyph. In this case, we are using the actual bitmap and metrics
+        // Tests a nontrivial glyph. In this case, we are using the actual bitmap and metrics
         // for how Open Sans Light encodes an ampersand (0x25), plus a 3px buffer we added.
         let alpha = Vec::from(include!("../fixtures/glyph_alpha.json"));
         let sdf_data_f64 = Vec::from(include!("../fixtures/glyph_sdf_f64.json"));
