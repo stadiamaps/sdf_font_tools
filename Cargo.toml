@@ -4,16 +4,15 @@ resolver = "2"
 
 [workspace.package]
 authors = ["Ian Wagner <ian@stadiamaps.com>", "Luke Seelenbinder <luke@stadiamaps.com>", "Yuri Astrakhan <YuriAstrakhan@gmail.com>"]
-edition = "2021"
+edition = "2024"
 license = "BSD-3-Clause"
 repository = "https://github.com/stadiamaps/sdf_font_tools"
-rust-version = "1.81.0"
+rust-version = "1.85.0"
 
 [workspace.dependencies]
 clap = { version = "4.5.0", features = ["cargo", "derive"] }
-freetype-rs = { version = "0.35.0" }
+freetype-rs = { version = "0.38.0" }
 futures = "0.3.28"
-glob = "0.3.1"
 num_cpus = "1.16.0"
 pbf_font_tools = { version = "2.3.0", features = ["freetype"], path = "pbf_font_tools" }
 protobuf = "3.2.0"
@@ -22,5 +21,5 @@ protoc-bin-vendored = "3.0.0"
 sdf_glyph_renderer = { version = "1.0.0", features = ["freetype"], path = "sdf_glyph_renderer" }
 serde_json = "1.0.100"
 spmc = "0.3.0"
-thiserror = "1.0.41"
+thiserror = "2.0.12"
 tokio = { version = "1.29.1", features = ["rt"] }

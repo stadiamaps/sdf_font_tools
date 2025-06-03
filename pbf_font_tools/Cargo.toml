@@ -25,6 +25,5 @@ tokio.workspace = true
 tokio = { workspace = true, features = ["fs", "io-util", "macros"] }
 
 [build-dependencies]
-glob.workspace = true
 protobuf-codegen.workspace = true
 protoc-bin-vendored.workspace = true
