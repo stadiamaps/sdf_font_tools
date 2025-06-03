@@ -11,7 +11,7 @@ rust-version = "1.85.0"
 
 [workspace.dependencies]
 clap = { version = "4.5.0", features = ["cargo", "derive"] }
-freetype-rs = { version = "0.35.0" }
+freetype-rs = { version = "0.38.0" }
 futures = "0.3.28"
 num_cpus = "1.16.0"
 pbf_font_tools = { version = "2.3.0", features = ["freetype"], path = "pbf_font_tools" }
