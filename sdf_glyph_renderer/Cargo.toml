@@ -17,3 +17,11 @@ freetype = ["dep:freetype-rs"]
 [dependencies]
 freetype-rs = { workspace = true, optional = true }
 thiserror.workspace = true
+
+[dev-dependencies]
+criterion = "0.6.0"
+
+[[bench]]
+name = "benchmark_sdf"
+harness = false
+
