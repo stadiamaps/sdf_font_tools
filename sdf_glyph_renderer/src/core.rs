@@ -54,7 +54,7 @@ impl BitmapGlyph {
     /// Most SDF glyphs are buffered a bit so that the outer edges can be properly captured.
     /// This constructor does the buffering for you.
     ///
-    /// The dimensions provided is expected to describe the input data.
+    /// The dimensions provided are expected to describe the input data.
     pub fn from_unbuffered(
         alpha: &[u8],
         width: usize,
@@ -72,7 +72,7 @@ impl BitmapGlyph {
 
         let double_buffer = buffer + buffer;
 
-        // Create an larger bitmap that includes a buffer
+        // Create a larger bitmap that includes a buffer
         let mut buffered_data = vec![0u8; (width + double_buffer) * (height + double_buffer)];
 
         // Copy the bitmap
@@ -150,7 +150,7 @@ impl BitmapGlyph {
             .iter()
             .zip(inner_df.iter())
             .map(|(outer_df, inner_df)| {
-                // Determine the euclidean distance inside or outside the alpha mask, then
+                // Determine the Euclidean distance inside or outside the alpha mask, then
                 // clamp the range according to the radius so that the overall range of the
                 // output field is [-1, 1] as a percentage of the radius.
                 ((outer_df.sqrt() - inner_df.sqrt()) / radius as f64).clamp(-1.0, 1.0)
@@ -239,7 +239,7 @@ pub fn clamp_to_u8(sdf: &[f64], cutoff: f64) -> Result<Vec<u8>, SdfGlyphError> {
 
 #[cfg(test)]
 mod tests {
-    use super::{clamp_to_u8, BitmapGlyph};
+    use super::{BitmapGlyph, clamp_to_u8};
 
     #[test]
     fn test_empty_glyph_unbuffered() {

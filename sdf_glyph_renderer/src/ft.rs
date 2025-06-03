@@ -1,5 +1,5 @@
-use freetype::face::LoadFlag;
 use freetype::Face;
+use freetype::face::LoadFlag;
 
 use crate::{BitmapGlyph, SdfGlyphError};
 
@@ -28,8 +28,8 @@ pub struct GlyphMetrics {
     /// The horizontal advance of the glyph in px.
     ///
     /// Note: vertical advance is not currently tracked; this is something we may
-    /// consider addressing in a future release, but most renderers, do not support vertical
-    /// text layouts so this is not much of a priority at the moment.
+    /// consider addressing in a future release, but most renderers do not support vertical
+    /// text layouts, so this is not much of a priority at the moment.
     pub h_advance: u32,
 
     /// The typographical ascender in px.
@@ -50,13 +50,13 @@ pub fn render_sdf_from_face(
         .ascender
         >> 6) as i32;
 
-    let Ok(glyph_index) = face.get_char_index(char_code as usize) else {
-        return Err(SdfGlyphError::FreeTypeError(
-            freetype::Error::InvalidGlyphIndex,
-        ));
-    };
+    let glyph_index =
+        face.get_char_index(char_code as usize)
+            .ok_or(SdfGlyphError::FreeTypeError(
+                freetype::Error::InvalidGlyphIndex,
+            ))?;
 
-    face.load_glyph(glyph_index.get(), LoadFlag::NO_HINTING | LoadFlag::RENDER)?;
+    face.load_glyph(glyph_index, LoadFlag::NO_HINTING | LoadFlag::RENDER)?;
 
     let glyph = face.glyph();
     let glyph_bitmap = glyph.bitmap();

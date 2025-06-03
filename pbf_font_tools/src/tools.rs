@@ -6,9 +6,9 @@ use futures::future::join_all;
 use protobuf::Message;
 use tokio::task::spawn_blocking;
 
-use crate::proto::glyphs::{Fontstack, Glyphs};
 use crate::PbfFontError;
 use crate::PbfFontError::MissingFontFamilyName;
+use crate::proto::glyphs::{Fontstack, Glyphs};
 
 /// Generates a single combined font stack for the set of fonts provided.
 ///
