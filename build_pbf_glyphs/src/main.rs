@@ -27,17 +27,17 @@
 //! ```
 
 use std::collections::HashMap;
-use std::fs::{create_dir_all, File};
+use std::fs::{File, create_dir_all};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::thread;
 use std::time::Instant;
 
-use clap::{command, Parser};
+use clap::{Parser, command};
 use pbf_font_tools::freetype::{Face, Library};
-use pbf_font_tools::{get_named_font_stack, glyph_range_for_face, Glyphs};
+use pbf_font_tools::{Glyphs, get_named_font_stack, glyph_range_for_face};
 use protobuf::{CodedOutputStream, Message};
-use spmc::{channel, Receiver};
+use spmc::{Receiver, channel};
 
 static TOTAL_GLYPHS_RENDERED: AtomicUsize = AtomicUsize::new(0);
 

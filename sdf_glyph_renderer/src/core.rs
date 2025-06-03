@@ -239,7 +239,7 @@ pub fn clamp_to_u8(sdf: &[f64], cutoff: f64) -> Result<Vec<u8>, SdfGlyphError> {
 
 #[cfg(test)]
 mod tests {
-    use super::{clamp_to_u8, BitmapGlyph};
+    use super::{BitmapGlyph, clamp_to_u8};
 
     #[test]
     fn test_empty_glyph_unbuffered() {

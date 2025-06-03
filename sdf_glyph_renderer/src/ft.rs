@@ -1,5 +1,5 @@
-use freetype::face::LoadFlag;
 use freetype::Face;
+use freetype::face::LoadFlag;
 
 use crate::{BitmapGlyph, SdfGlyphError};
 
