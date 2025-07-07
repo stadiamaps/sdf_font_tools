@@ -34,4 +34,4 @@ You can change this behavior with feature flags in the following ways:
 * Disabling default flags will disable the source build (be sure to add freetype if you need it!).
 * To use a specific `protoc` that you have installed on your system, set the `PROTOC` environment variable during build.
   (Otherwise, your `PATH` will be checked to find one).
-* To skip builds and use a vendored `protoc` binary, enable the `protoc-bin-vendored` feature.
+* To skip builds and use a vendored `protoc` binary, enable the `protoc-vendored` feature.
