@@ -29,5 +29,5 @@ tokio = { workspace = true, features = ["fs", "io-util", "macros"] }
 
 [build-dependencies]
 prost-build.workspace = true
-protobuf-src = {workspace = true, optional = true}
+protobuf-src = { workspace = true, optional = true }
 protoc-bin-vendored = { workspace = true, optional = true }
