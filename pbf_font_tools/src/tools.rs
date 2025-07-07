@@ -1,12 +1,14 @@
 use std::collections::HashSet;
-use std::fs::File;
+use std::ops::Deref;
 use std::path::Path;
+use tokio::fs::File;
 
 use futures::future::join_all;
-use protobuf::Message;
+use prost::Message;
+use tokio::io::AsyncReadExt;
 use tokio::task::spawn_blocking;
 
-use crate::proto::glyphs::{Fontstack, Glyphs};
+use crate::proto::{Fontstack, Glyphs};
 use crate::PbfFontError;
 use crate::PbfFontError::MissingFontFamilyName;
 
@@ -43,11 +45,11 @@ pub async fn get_named_font_stack<P: AsRef<Path>>(
         .await?
         .unwrap_or_else(|| {
             // Construct an empty message manually if the range is not covered
-            let mut result = Glyphs::new();
+            let mut result = Glyphs::default();
 
-            let mut stack = Fontstack::new();
-            stack.set_name(stack_name);
-            stack.set_range(format!("{start}-{end}"));
+            let mut stack = Fontstack::default();
+            stack.name = stack_name;
+            stack.range = format!("{start}-{end}");
 
             result.stacks.push(stack);
             result
@@ -78,13 +80,10 @@ pub async fn load_glyphs<P: AsRef<Path>>(
         .join(font_name)
         .join(format!("{start}-{end}.pbf"));
 
-    // Note: Counter-intuitively, it's much faster to use blocking IO with `spawn_blocking` here,
-    // since the `Message::parse_` call will block as well.
-    Ok(spawn_blocking(|| {
-        let mut file = File::open(full_path)?;
-        Message::parse_from_reader(&mut file)
-    })
-    .await??)
+    let mut file = File::open(full_path).await?;
+    let mut bytes = Vec::with_capacity(file.metadata().await?.len() as usize);
+    file.read_to_end(&mut bytes).await?;
+    Glyphs::decode(bytes.deref()).map_err(PbfFontError::from)
 }
 
 /// Combines a list of SDF font glyphs into a single glyphs message.
@@ -96,32 +95,31 @@ pub async fn load_glyphs<P: AsRef<Path>>(
 /// construct an empty message, the responsibility lies with the caller.
 #[must_use]
 pub fn combine_glyphs(glyphs_to_combine: Vec<Glyphs>) -> Option<Glyphs> {
-    let mut result = Glyphs::new();
-    let mut combined_stack = Fontstack::new();
+    let mut result = Glyphs::default();
+    let mut combined_stack = Fontstack::default();
     let mut coverage: HashSet<u32> = HashSet::new();
     let mut start = u32::MAX;
     let mut end = u32::MIN;
 
     for mut glyph_stack in glyphs_to_combine {
         for mut font_stack in glyph_stack.stacks.drain(..) {
-            if combined_stack.has_name() {
-                let name = combined_stack.mut_name();
-                name.push_str(", ");
-                name.push_str(&font_stack.take_name());
+            if combined_stack.name.is_empty() {
+                combined_stack.name = font_stack.name;
             } else {
-                combined_stack.set_name(font_stack.take_name());
+                let name = &mut combined_stack.name;
+                name.push_str(", ");
+                name.push_str(&font_stack.name)
             }
 
             for glyph in font_stack.glyphs.drain(..) {
-                if let Some(id) = glyph.id {
-                    if coverage.insert(id) {
-                        combined_stack.glyphs.push(glyph);
-                        if id < start {
-                            start = id;
-                        }
-                        if id > end {
-                            end = id;
-                        }
+                let id = glyph.id;
+                if coverage.insert(id) {
+                    combined_stack.glyphs.push(glyph);
+                    if id < start {
+                        start = id;
+                    }
+                    if id > end {
+                        end = id;
                     }
                 }
             }
@@ -132,7 +130,7 @@ pub fn combine_glyphs(glyphs_to_combine: Vec<Glyphs>) -> Option<Glyphs> {
         return None;
     }
 
-    combined_stack.set_range(format!("{start}-{end}"));
+    combined_stack.range = format!("{start}-{end}");
     result.stacks.push(combined_stack);
 
     Some(result)

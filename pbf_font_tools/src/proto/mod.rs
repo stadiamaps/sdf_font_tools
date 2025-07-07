@@ -2,4 +2,4 @@
 
 #![allow(clippy::pedantic)]
 
-include!(concat!(env!("OUT_DIR"), "/protos/mod.rs"));
+include!(concat!(env!("OUT_DIR"), "/llmr.glyphs.rs"));
