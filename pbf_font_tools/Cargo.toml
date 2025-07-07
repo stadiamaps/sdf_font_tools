@@ -20,7 +20,7 @@ protoc-vendored = ["dep:protoc-bin-vendored"]
 [target.'cfg(windows)'.features]
 # Don't enable the protobuf source build on Windows by default.
 # See https://github.com/MaterializeInc/rust-protobuf-native/issues/4
-default = ["protoc-bin-vendored"]
+default = ["protoc-vendored"]
 
 [dependencies]
 futures.workspace = true
