@@ -47,9 +47,11 @@ pub async fn get_named_font_stack<P: AsRef<Path>>(
             // Construct an empty message manually if the range is not covered
             let mut result = Glyphs::default();
 
-            let mut stack = Fontstack::default();
-            stack.name = stack_name;
-            stack.range = format!("{start}-{end}");
+            let stack = Fontstack {
+                name: stack_name,
+                range: format!("{start}-{end}"),
+                ..Default::default()
+            };
 
             result.stacks.push(stack);
             result
