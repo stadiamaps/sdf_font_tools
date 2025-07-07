@@ -40,6 +40,7 @@ use pbf_font_tools::{get_named_font_stack, glyph_range_for_face, Glyphs};
 use prost::Message;
 use spmc::{channel, Receiver};
 use tokio::io::AsyncWriteExt;
+use tokio::task::spawn_blocking;
 
 static TOTAL_GLYPHS_RENDERED: AtomicUsize = AtomicUsize::new(0);
 
@@ -80,7 +81,9 @@ async fn combine_glyphs(font_path: &Path, font_names: &[&str], stack_name: Strin
         // The above utility always returns a single stack
         glyphs_combined += stack.stacks[0].glyphs.len();
 
-        let encoded_bytes = stack.encode_to_vec();
+        let encoded_bytes = spawn_blocking(move || stack.encode_to_vec())
+            .await
+            .expect("Unable to spawn an encoding task");
         let mut file = File::create(out_dir.join(format!("{start}-{end}.pbf")))
             .await
             .expect("Unable to create file");
