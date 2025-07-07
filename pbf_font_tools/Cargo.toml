@@ -12,15 +12,10 @@ repository.workspace = true
 license.workspace = true
 
 [features]
-default = ["protoc-from-src"]
+default = ["protoc-vendored"]
 freetype = ["dep:sdf_glyph_renderer"]
 protoc-from-src = ["dep:protobuf-src"]
 protoc-vendored = ["dep:protoc-bin-vendored"]
-
-[target.'cfg(windows)'.features]
-# Don't enable the protobuf source build on Windows by default.
-# See https://github.com/MaterializeInc/rust-protobuf-native/issues/4
-default = ["protoc-vendored"]
 
 [dependencies]
 futures.workspace = true

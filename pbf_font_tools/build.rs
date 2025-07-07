@@ -7,7 +7,7 @@ fn main() -> Result<()> {
 
     // Vendored protoc binary
     #[cfg(feature = "protoc-vendored")]
-    std::env::set_var("PROTOC", protoc_bin_vendored::protoc_bin_path());
+    std::env::set_var("PROTOC", protoc_bin_vendored::protoc_bin_path().expect("Unable to find protoc!"));
 
     prost_build::compile_protos(&["proto/glyphs.proto"], &["proto/"])?;
     Ok(())

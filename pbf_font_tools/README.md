@@ -25,13 +25,12 @@ evolves over time.
 
 ## protoc
 
-By default, this crate will build the protobuf compiler from source during build on most platforms
-to encourage better reproducibility.
-This requires having a C++ compiler at the moment.
+By default, this crate uses a vendored protobuf compiler binary (`protoc`)
+to support the widest number of platforms.
+You can disable the default features to opt out of this.
 
-You can change this behavior with feature flags in the following ways:
+When opted out of the vendored compiler, you can ensure `protoc` is accessible in any of the following ways:
 
-* Disabling default flags will disable the source build (be sure to add freetype if you need it!).
-* To use a specific `protoc` that you have installed on your system, set the `PROTOC` environment variable during build.
-  (Otherwise, your `PATH` will be checked to find one).
-* To skip builds and use a vendored `protoc` binary, enable the `protoc-vendored` feature.
+* Disabling the default features will look for `protoc` in your `PATH` by default.
+* To build from source (requires a C++ compiler), enable the `protoc-from-src` feature. This will be used instead.
+* To use a specific `protoc` that isn't in your `PATH`, set the `PROTOC` environment variable during build.
