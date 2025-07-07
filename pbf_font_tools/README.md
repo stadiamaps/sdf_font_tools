@@ -22,3 +22,9 @@ evolves over time.
 
 * https://github.com/mapbox/glyph-pbf-composite
 * https://github.com/klokantech/tileserver-gl/blob/master/src/utils.js
+
+## protoc
+
+By default, this crate will build the protobuf compiler from source during build.
+You can opt out of this by opting out of the default features (and then selectively adding freetype if needed).
+You can also override the path of `protoc` by setting the `PROTOC` environment variable.

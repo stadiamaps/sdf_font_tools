@@ -12,7 +12,9 @@ repository.workspace = true
 license.workspace = true
 
 [features]
+default = ["build-protobuf-src"]
 freetype = ["dep:sdf_glyph_renderer"]
+build-protobuf-src = ["dep:protobuf-src"]
 
 [dependencies]
 futures.workspace = true
@@ -26,3 +28,4 @@ tokio = { workspace = true, features = ["fs", "io-util", "macros"] }
 
 [build-dependencies]
 prost-build.workspace = true
+protobuf-src = {workspace = true, optional = true}
