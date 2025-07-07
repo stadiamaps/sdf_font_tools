@@ -12,6 +12,6 @@ pub enum PbfFontError {
     #[cfg(feature = "freetype")]
     #[error("Freetype error: {0}")]
     FreetypeError(#[from] crate::freetype::Error),
-    #[error("IO error: {0}")]
+    #[error(transparent)]
     IoError(#[from] std::io::Error),
 }
