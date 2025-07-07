@@ -13,11 +13,11 @@ rust-version = "1.81.0"
 clap = { version = "4.5.0", features = ["cargo", "derive"] }
 freetype-rs = { version = "0.35.0" }
 futures = "0.3.28"
-pbf_font_tools = { version = "2.3.0", features = ["freetype"], path = "pbf_font_tools" }
+pbf_font_tools = { path = "pbf_font_tools", features = ["freetype"] }
 prost = "0.14.1"
 prost-build = "0.14.1"
 sdf_glyph_renderer = { version = "1.0.0", features = ["freetype"], path = "sdf_glyph_renderer" }
 serde_json = "1.0.100"
 spmc = "0.3.0"
 thiserror = "2.0.12"
-tokio = { version = "1.46.1", features = ["rt", "fs"] }
+tokio = { version = "1.46.1", features = ["rt", "fs", "io-util"] }
