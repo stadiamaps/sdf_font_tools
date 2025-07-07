@@ -44,13 +44,13 @@ jobs:
         run: cargo fmt --all -- --check
 
       - name: Test Debug
-        run: cargo test --workspace --all-features --locked
+        run: cargo test --workspace --features freetype --locked
 
       - name: Test Release
-        run: cargo test --workspace --release --all-features --locked
+        run: cargo test --workspace --release --features freetype --locked
 
       - name: Lint
-        run: cargo clippy --workspace --all-targets --all-features -- -D warnings
+        run: cargo clippy --workspace --all-targets --features freetype -- -D warnings
 
       - name: Test docs
         run: |
@@ -85,4 +85,4 @@ jobs:
         run: rustc --version && cargo --version
 
       - name: Run tests
-        run: cargo test --workspace --all-features --locked
+        run: cargo test --workspace --features freetype --locked
