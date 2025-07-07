@@ -11,9 +11,9 @@
 //! [sdf_glyph_renderer](https://github.com/stadiamaps/sdf_glyph_renderer) for more technical
 //! details on how this works.
 //!
-//! NOTE: This has requires you to have `FreeType` installed on your system. We recommend using
+//! NOTE: This requires you to have `FreeType` installed on your system. We recommend using
 //! `FreeType` 2.10 or newer. Everything will still work against many older 2.x versions, but
-//! the glyph generation improves over time so things will generally look better with newer
+//! the glyph generation improves over time, so things will generally look better with newer
 //! versions.
 //!
 //! ## Usage
@@ -187,7 +187,7 @@ fn main() {
     let out_dir = &args.out_dir;
 
     let (mut tx, rx) = channel();
-    let num_threads = num_cpus::get();
+    let num_threads = thread::available_parallelism().unwrap().get();
     println!("Starting {num_threads} worker threads...");
 
     let join_handles: Vec<_> = (0..num_threads)
