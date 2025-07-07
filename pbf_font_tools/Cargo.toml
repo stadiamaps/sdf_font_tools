@@ -12,9 +12,15 @@ repository.workspace = true
 license.workspace = true
 
 [features]
-default = ["build-protobuf-src"]
+default = ["protoc-from-src"]
 freetype = ["dep:sdf_glyph_renderer"]
-build-protobuf-src = ["dep:protobuf-src"]
+protoc-from-src = ["dep:protobuf-src"]
+protoc-bin-vendored = ["dep:protoc-bin-vendored"]
+
+[target.'cfg(windews)'.features]
+# Don't enable the protobuf source build on Windows by default.
+# See https://github.com/MaterializeInc/rust-protobuf-native/issues/4
+default = ["protoc-bin-vendored"]
 
 [dependencies]
 futures.workspace = true
@@ -29,3 +35,4 @@ tokio = { workspace = true, features = ["fs", "io-util", "macros"] }
 [build-dependencies]
 prost-build.workspace = true
 protobuf-src = {workspace = true, optional = true}
+protoc-bin-vendored = { workspace = true, optional = true }

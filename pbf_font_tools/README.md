@@ -25,6 +25,13 @@ evolves over time.
 
 ## protoc
 
-By default, this crate will build the protobuf compiler from source during build.
-You can opt out of this by opting out of the default features (and then selectively adding freetype if needed).
-You can also override the path of `protoc` by setting the `PROTOC` environment variable.
+By default, this crate will build the protobuf compiler from source during build on most platforms
+to encourage better reproducibility.
+This requires having a C++ compiler at the moment.
+
+You can change this behavior with feature flags in the following ways:
+
+* Disabling default flags will disable the source build (be sure to add freetype if you need it!).
+* To use a specific `protoc` that you have installed on your system, set the `PROTOC` environment variable during build.
+  (Otherwise, your `PATH` will be checked to find one).
+* To skip builds and use a vendored `protoc` binary, enable the `protoc-bin-vendored` feature.
