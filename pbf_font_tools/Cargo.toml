@@ -1,6 +1,6 @@
 [package]
 name = "pbf_font_tools"
-version = "2.5.1"
+version = "3.0.0"
 description = "Tools for working with SDF font glyphs encoded in protobuf format."
 readme = "README.md"
 keywords = ["sdf", "protobuf", "fonts"]
@@ -12,11 +12,14 @@ repository.workspace = true
 license.workspace = true
 
 [features]
+default = ["protoc-vendored"]
 freetype = ["dep:sdf_glyph_renderer"]
+protoc-from-src = ["dep:protobuf-src"]
+protoc-vendored = ["dep:protoc-bin-vendored"]
 
 [dependencies]
 futures.workspace = true
-protobuf.workspace = true
+prost.workspace = true
 sdf_glyph_renderer = { workspace = true, optional = true }
 thiserror.workspace = true
 tokio.workspace = true
@@ -25,6 +28,6 @@ tokio.workspace = true
 tokio = { workspace = true, features = ["fs", "io-util", "macros"] }
 
 [build-dependencies]
-glob.workspace = true
-protobuf-codegen.workspace = true
-protoc-bin-vendored.workspace = true
+prost-build.workspace = true
+protobuf-src = { workspace = true, optional = true }
+protoc-bin-vendored = { workspace = true, optional = true }

@@ -22,3 +22,15 @@ evolves over time.
 
 * https://github.com/mapbox/glyph-pbf-composite
 * https://github.com/klokantech/tileserver-gl/blob/master/src/utils.js
+
+## protoc
+
+By default, this crate uses a vendored protobuf compiler binary (`protoc`)
+to support the widest number of platforms.
+You can disable the default features to opt out of this.
+
+When opted out of the vendored compiler, you can ensure `protoc` is accessible in any of the following ways:
+
+* Disabling the default features will look for `protoc` in your `PATH` by default.
+* To build from source (requires a C++ compiler), enable the `protoc-from-src` feature. This will be used instead.
+* To use a specific `protoc` that isn't in your `PATH`, set the `PROTOC` environment variable during build.

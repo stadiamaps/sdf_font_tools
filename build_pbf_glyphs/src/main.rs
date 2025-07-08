@@ -11,9 +11,9 @@
 //! [sdf_glyph_renderer](https://github.com/stadiamaps/sdf_glyph_renderer) for more technical
 //! details on how this works.
 //!
-//! NOTE: This has requires you to have `FreeType` installed on your system. We recommend using
+//! NOTE: This requires you to have `FreeType` installed on your system. We recommend using
 //! `FreeType` 2.10 or newer. Everything will still work against many older 2.x versions, but
-//! the glyph generation improves over time so things will generally look better with newer
+//! the glyph generation improves over time, so things will generally look better with newer
 //! versions.
 //!
 //! ## Usage
@@ -27,17 +27,20 @@
 //! ```
 
 use std::collections::HashMap;
-use std::fs::{create_dir_all, File};
+use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::thread;
 use std::time::Instant;
+use tokio::fs::{create_dir_all, File};
 
 use clap::{command, Parser};
 use pbf_font_tools::freetype::{Face, Library};
 use pbf_font_tools::{get_named_font_stack, glyph_range_for_face, Glyphs};
-use protobuf::{CodedOutputStream, Message};
+use prost::Message;
 use spmc::{channel, Receiver};
+use tokio::io::AsyncWriteExt;
+use tokio::task::spawn_blocking;
 
 static TOTAL_GLYPHS_RENDERED: AtomicUsize = AtomicUsize::new(0);
 
@@ -62,7 +65,9 @@ struct Args {
 /// The font name list will be used as the order of precedence.
 async fn combine_glyphs(font_path: &Path, font_names: &[&str], stack_name: String) {
     let out_dir = font_path.join(&stack_name);
-    create_dir_all(&out_dir).expect("Unable to create output directory");
+    create_dir_all(&out_dir)
+        .await
+        .expect("Unable to create output directory");
 
     let mut start = 0;
     let mut end = 255;
@@ -76,11 +81,15 @@ async fn combine_glyphs(font_path: &Path, font_names: &[&str], stack_name: Strin
         // The above utility always returns a single stack
         glyphs_combined += stack.stacks[0].glyphs.len();
 
+        let encoded_bytes = spawn_blocking(move || stack.encode_to_vec())
+            .await
+            .expect("Unable to spawn an encoding task");
         let mut file = File::create(out_dir.join(format!("{start}-{end}.pbf")))
+            .await
             .expect("Unable to create file");
-        let mut cos = CodedOutputStream::new(&mut file);
-        stack.write_to(&mut cos).expect("Unable to write");
-        cos.flush().expect("Unable to flush");
+        file.write_all(&encoded_bytes)
+            .await
+            .expect("Unable to write to file");
 
         start += 256;
         end += 256;
@@ -108,7 +117,7 @@ fn render_worker(
 
     while let Ok(Some((path, stem))) = rx.recv() {
         let out_dir = base_out_dir.join(stem.to_str().expect("Unable to extract file stem"));
-        create_dir_all(&out_dir).expect("Unable to create output directory");
+        std::fs::create_dir_all(&out_dir).expect("Unable to create output directory");
 
         println!("Processing {}", path.display());
 
@@ -138,7 +147,7 @@ fn render_worker(
             if !overwrite && glyph_path.exists() {
                 glyphs_skipped += 256;
             } else {
-                let mut glyphs = Glyphs::new();
+                let mut glyphs = Glyphs::default();
 
                 for (face_index, face) in faces.iter().enumerate() {
                     if let Ok(stack) = glyph_range_for_face(face, start, end, 24, radius, cutoff) {
@@ -151,10 +160,10 @@ fn render_worker(
                     }
                 }
 
-                let mut file = File::create(glyph_path).expect("Unable to create file");
-                let mut cos = CodedOutputStream::new(&mut file);
-                glyphs.write_to(&mut cos).expect("Unable to write");
-                cos.flush().expect("Unable to flush");
+                let encoded_bytes = glyphs.encode_to_vec();
+                let mut file = std::fs::File::create(glyph_path).expect("Unable to create file");
+                file.write_all(&encoded_bytes)
+                    .expect("Unable to write to file");
             }
 
             start += 256;
@@ -181,7 +190,7 @@ fn main() {
     let out_dir = &args.out_dir;
 
     let (mut tx, rx) = channel();
-    let num_threads = num_cpus::get();
+    let num_threads = thread::available_parallelism().unwrap().get();
     println!("Starting {num_threads} worker threads...");
 
     let join_handles: Vec<_> = (0..num_threads)

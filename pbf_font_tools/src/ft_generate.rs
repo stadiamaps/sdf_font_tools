@@ -15,16 +15,15 @@ pub fn render_sdf_glyph(
 ) -> Result<Glyph, PbfFontError> {
     let glyph = render_sdf_from_face(face, char_code, buffer, radius)?;
 
-    let mut result = Glyph::new();
-    result.set_id(char_code);
-    result.set_bitmap(clamp_to_u8(&glyph.sdf, cutoff)?);
-    result.set_width(glyph.metrics.width as u32);
-    result.set_height(glyph.metrics.height as u32);
-    result.set_left(glyph.metrics.left_bearing);
-    result.set_top(glyph.metrics.top_bearing - glyph.metrics.ascender);
-    result.set_advance(glyph.metrics.h_advance);
-
-    Ok(result)
+    Ok(Glyph {
+        id: char_code,
+        bitmap: Some(clamp_to_u8(&glyph.sdf, cutoff)?),
+        width: glyph.metrics.width as u32,
+        height: glyph.metrics.height as u32,
+        left: glyph.metrics.left_bearing,
+        top: glyph.metrics.top_bearing - glyph.metrics.ascender,
+        advance: glyph.metrics.h_advance,
+    })
 }
 
 /// Renders a glyph range for the given font face into a Mapbox-compatible fontstack.
@@ -54,9 +53,11 @@ pub fn glyph_range_for_face(
         family_name.push_str(&style_name);
     }
 
-    let mut stack = Fontstack::new();
-    stack.set_name(family_name);
-    stack.set_range(format!("{start}-{end}"));
+    let mut stack = Fontstack {
+        name: family_name,
+        range: format!("{start}-{end}"),
+        glyphs: Vec::with_capacity((end - start) as usize),
+    };
 
     // FreeType conventions: char width or height of zero means "use the same value"
     // and setting both resolution values to zero results in the default value
@@ -97,7 +98,7 @@ pub fn glyph_range_for_font<P: AsRef<Path>>(
     let mut face = lib.new_face(font_path.as_ref(), 0)?;
     let num_faces = face.num_faces();
 
-    let mut result = Glyphs::new();
+    let mut result = Glyphs::default();
     result.stacks.reserve(num_faces as usize);
 
     for face_index in 0..num_faces {

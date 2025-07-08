@@ -13,9 +13,8 @@ license.workspace = true
 
 [dependencies]
 clap.workspace = true
-num_cpus.workspace = true
 pbf_font_tools.workspace = true
-protobuf.workspace = true
+prost.workspace = true
 serde_json.workspace = true
 spmc.workspace = true
 tokio = { workspace = true, features = ["fs", "rt-multi-thread", "macros"] }
