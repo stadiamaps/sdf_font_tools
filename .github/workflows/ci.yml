@@ -27,7 +27,7 @@ jobs:
       - name: Check semver
         uses: obi1kenobi/cargo-semver-checks-action@v2
         with:
-          feature-group: default-features
+          features: freetype
 
   test:
     name: Run CI
