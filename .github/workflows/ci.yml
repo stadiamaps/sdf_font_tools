@@ -39,12 +39,6 @@ jobs:
           feature-group: default-features
           features: freetype
 
-      - name: Check semver (Build PBF Glyphs)
-        uses: obi1kenobi/cargo-semver-checks-action@v2
-        with:
-          package: build_pbf_glyphs
-          feature-group: default-features
-
   test:
     name: Run CI
     runs-on: ubuntu-latest
