@@ -24,11 +24,26 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Check semver
+
+      - name: Check semver (SDF Glyph Renderer)
         uses: obi1kenobi/cargo-semver-checks-action@v2
         with:
+          package: sdf_glyph_renderer
           feature-group: default-features
-          features: freetype,protoc-vendored
+          features: freetype
+
+      - name: Check semver (PBF Font Tools)
+        uses: obi1kenobi/cargo-semver-checks-action@v2
+        with:
+          package: pbf_font_tools
+          feature-group: default-features
+          features: freetype
+
+      - name: Check semver (Build PBF Glyphs)
+        uses: obi1kenobi/cargo-semver-checks-action@v2
+        with:
+          package: build_pbf_glyphs
+          feature-group: default-features
 
   test:
     name: Run CI
