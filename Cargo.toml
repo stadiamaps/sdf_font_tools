@@ -13,7 +13,7 @@ rust-version = "1.81.0"
 clap = { version = "4.5.0", features = ["cargo", "derive"] }
 freetype-rs = { version = "0.35.0" }
 futures = "0.3.28"
-pbf_font_tools = { path = "pbf_font_tools", default-features = false, features = ["freetype"] }
+pbf_font_tools = { version = "3.0.0", path = "pbf_font_tools", default-features = false }
 prost = "0.14.1"
 prost-build = "0.14.1"
 protobuf-src = "2.1.1"
