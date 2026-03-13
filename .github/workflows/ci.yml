@@ -33,7 +33,6 @@ jobs:
           package: sdf_glyph_renderer
           feature-group: default-features
           features: freetype
-          release-type: major
 
       - name: Check semver (PBF Font Tools)
         uses: obi1kenobi/cargo-semver-checks-action@v2
@@ -41,7 +40,6 @@ jobs:
           package: pbf_font_tools
           feature-group: default-features
           features: freetype
-          release-type: major
 
   test:
     name: Run CI
