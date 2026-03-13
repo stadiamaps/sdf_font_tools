@@ -28,9 +28,13 @@ evolves over time.
 By default, this crate uses a vendored protobuf compiler binary (`protoc`)
 to support the widest number of platforms.
 You can disable the default features to opt out of this.
+NOTE: Some platforms do not have vendored builds available.
+In this case, the build will proceed normally as long as `protoc` is available.
 
-When opted out of the vendored compiler, you can ensure `protoc` is accessible in any of the following ways:
+When not using the vendored protobuf compiler,
+you can ensure `protoc` is accessible in any of the following ways:
 
 * Disabling the default features will look for `protoc` in your `PATH` by default.
-* To build from source (requires a C++ compiler), enable the `protoc-from-src` feature. This will be used instead.
+* To build from source (requires a C++ compiler), enable the `protoc-from-src` feature.
+  Even if you have `protoc` available elsewhere, the source built version will be used instead.
 * To use a specific `protoc` that isn't in your `PATH`, set the `PROTOC` environment variable during build.
