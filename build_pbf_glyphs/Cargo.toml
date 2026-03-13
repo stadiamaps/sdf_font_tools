@@ -11,9 +11,14 @@ rust-version.workspace = true
 repository.workspace = true
 license.workspace = true
 
+[features]
+default = ["protoc-vendored"]
+protoc-from-src = ["pbf_font_tools/protoc-from-src"]
+protoc-vendored = ["pbf_font_tools/protoc-vendored"]
+
 [dependencies]
 clap.workspace = true
-pbf_font_tools.workspace = true
+pbf_font_tools = { workspace = true, features = ["freetype"] }
 prost.workspace = true
 serde_json.workspace = true
 spmc.workspace = true
