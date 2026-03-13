@@ -1,6 +1,6 @@
 [package]
 name = "sdf_glyph_renderer"
-version = "1.0.2"
+version = "1.1.0"
 description = "Tools for generating SDF font glyphs from bitmap images."
 readme = "README.md"
 keywords = ["sdf", "fonts", "glyphs"]
@@ -12,14 +12,15 @@ repository.workspace = true
 license.workspace = true
 
 [features]
-freetype = ["dep:freetype-rs"]
+freetype = ["dep:freetype-rs", "freetype-rs?/bundled"]
+freetype-system = ["dep:freetype-rs"]
 
 [dependencies]
 freetype-rs = { workspace = true, optional = true }
 thiserror.workspace = true
 
 [dev-dependencies]
-criterion = "0.6.0"
+criterion = "0.8.2"
 
 [[bench]]
 name = "benchmark_sdf"

@@ -6,7 +6,8 @@ This crate is a Rust implementation of the signed distance field generation tech
 demonstrated by [Valve](https://steamcdn-a.akamaihd.net/apps/valve/2007/SIGGRAPH2007_AlphaTestedMagnification.pdf)
 and [Mapbox](https://blog.mapbox.com/drawing-text-with-signed-distance-fields-in-mapbox-gl-b0933af6f817).
 The generic interface works with any bitmap, and a high level interface enables easy operation
-with FreeType faces when the optional `freetype` feature is enabled.
+with FreeType faces when the optional `freetype` feature is enabled (bundles FreeType from source).
+Use the `freetype-system` feature instead to link against a system-installed FreeType.
 
 The approach taken by this crate is similar to [TinySDF](https://github.com/mapbox/tiny-sdf);
 it works from a raster bitmap rather than directly from vector outlines. This keeps the

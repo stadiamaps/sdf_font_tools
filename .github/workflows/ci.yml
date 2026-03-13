@@ -96,5 +96,11 @@ jobs:
       - name: Report Rust version
         run: rustc --version && cargo --version
 
+      # freetype-sys 0.23.0 bundled build is broken on Windows (links system zlib)
       - name: Run tests
         run: cargo test --workspace --features freetype --locked
+        if: ${{ !startsWith(matrix.os, 'windows') }}
+
+      - name: Run tests (no freetype)
+        run: cargo test --workspace --exclude build_pbf_glyphs --locked
+        if: ${{ startsWith(matrix.os, 'windows') }}

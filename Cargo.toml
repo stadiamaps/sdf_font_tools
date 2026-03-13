@@ -7,19 +7,19 @@ authors = ["Ian Wagner <ian@stadiamaps.com>", "Luke Seelenbinder <luke@stadiamap
 edition = "2021"
 license = "BSD-3-Clause"
 repository = "https://github.com/stadiamaps/sdf_font_tools"
-rust-version = "1.81.0"
+rust-version = "1.87.0"
 
 [workspace.dependencies]
-clap = { version = "4.5.0", features = ["cargo", "derive"] }
-freetype-rs = { version = "0.35.0" }
-futures = "0.3.28"
-pbf_font_tools = { version = "3.0.0", path = "pbf_font_tools", default-features = false }
-prost = "0.14.1"
-prost-build = "0.14.1"
+clap = { version = "4.5.60", features = ["derive"] }
+freetype-rs = "0.38.0"
+futures = "0.3.32"
+pbf_font_tools = { path = "pbf_font_tools" }
+prost = "0.14.3"
+prost-build = "0.14.3"
 protobuf-src = "2.1.1"
-protoc-bin-vendored = "3.1.0"
-sdf_glyph_renderer = { path = "sdf_glyph_renderer", features = ["freetype"] }
-serde_json = "1.0.100"
+protoc-bin-vendored = "3.2.0"
+sdf_glyph_renderer = { path = "sdf_glyph_renderer" }
+serde_json = "1.0.149"
 spmc = "0.3.0"
-thiserror = "2.0.12"
-tokio = { version = "1.46.1", features = ["rt", "fs", "io-util"] }
+thiserror = "2.0.18"
+tokio = { version = "1.50.0", features = ["rt", "fs", "io-util"] }
