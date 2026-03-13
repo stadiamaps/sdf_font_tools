@@ -25,12 +25,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - uses: dtolnay/rust-toolchain@stable
+
       - name: Check semver (SDF Glyph Renderer)
         uses: obi1kenobi/cargo-semver-checks-action@v2
         with:
           package: sdf_glyph_renderer
           feature-group: default-features
           features: freetype
+          release-type: major
 
       - name: Check semver (PBF Font Tools)
         uses: obi1kenobi/cargo-semver-checks-action@v2
@@ -38,6 +41,7 @@ jobs:
           package: pbf_font_tools
           feature-group: default-features
           features: freetype
+          release-type: major
 
   test:
     name: Run CI
@@ -45,6 +49,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
 
       - uses: Swatinem/rust-cache@v2
         if: github.event_name != 'release' && github.event_name != 'workflow_dispatch'
@@ -90,11 +98,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - uses: dtolnay/rust-toolchain@stable
+
       - uses: Swatinem/rust-cache@v2
         if: github.event_name != 'release' && github.event_name != 'workflow_dispatch'
 
       - name: Report Rust version
         run: rustc --version && cargo --version
 
+      # freetype-sys 0.23.0 bundled build is broken on Windows (links system zlib)
       - name: Run tests
         run: cargo test --workspace --features freetype --locked
+        if: ${{ !startsWith(matrix.os, 'windows') }}
+
+      - name: Run tests (no freetype)
+        run: cargo test --workspace --exclude build_pbf_glyphs --locked
+        if: ${{ startsWith(matrix.os, 'windows') }}
