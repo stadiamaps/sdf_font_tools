@@ -14,10 +14,13 @@ license.workspace = true
 [features]
 freetype = ["dep:freetype-rs", "freetype-rs?/bundled"]
 freetype-system = ["dep:freetype-rs"]
+ttf-parser = ["dep:ttf-parser", "dep:rstar"]
 
 [dependencies]
 freetype-rs = { workspace = true, optional = true }
+rstar = { workspace = true, optional = true }
 thiserror.workspace = true
+ttf-parser = { workspace = true, optional = true }
 
 [dev-dependencies]
 criterion = "0.8.2"
