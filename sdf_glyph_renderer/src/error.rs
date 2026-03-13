@@ -11,6 +11,12 @@ pub enum SdfGlyphError {
     #[error("Cutoff values must be between 0 and 1 (both non-inclusive), but {0} was provided.")]
     InvalidCutoff(f64),
 
+    #[error("Invalid character code: {0}")]
+    InvalidCharCode(u32),
+
+    #[error("Glyph not found for character code {0}")]
+    GlyphNotFound(u32),
+
     #[cfg(feature = "freetype")]
     #[error("FreeType error: {0}")]
     FreeTypeError(#[from] freetype::Error),

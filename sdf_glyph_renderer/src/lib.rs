@@ -4,17 +4,17 @@
 //! The generic interface works with any bitmap, and a high level interface enables easy operation
 //! with FreeType faces when the optional `freetype` feature is enabled (bundles FreeType from source).
 //! Use the `freetype-system` feature instead to link against a system-installed FreeType.
+//! An alternative vector-based approach using bezier curves is available via the `ttf-parser` feature.
 //!
-//! The approach taken by this crate is similar to [TinySDF](https://github.com/mapbox/tiny-sdf);
-//! it works from a raster bitmap rather than directly from vector outlines. This keeps the
-//! crate simple and allows it to be used generically with any bitmap. The SDF is calculated
+//! The bitmap-based approach taken by this crate is similar to [TinySDF](https://github.com/mapbox/tiny-sdf);
+//! it works from a raster bitmap rather than directly from vector outlines. The SDF is calculated
 //! using the same algorithm described in [this paper](http://cs.brown.edu/people/pfelzens/papers/dt-final.pdf)
 //! by Felzenszwalb & Huttenlocher.
 //!
-//! Rather than re-invent the rasterisation process for fonts, this crate relies on FreeType to
-//! generate the bitmap. This is quite fast (we're talking µs/glyph), and the results are
-//! almost always indistinguishable from the more sophisticated vector-based approach of
-//! [sdf-glyph-foundry](https://github.com/mapbox/sdf-glyph-foundry).
+//! When the `ttf-parser` feature is enabled, an alternative vector-based approach computes the
+//! SDF directly from the font's bezier curve outlines, similar to
+//! [sdf-glyph-foundry](https://github.com/mapbox/sdf-glyph-foundry). This produces higher
+//! quality results for complex scripts (Indic, Khmer, Burmese, etc.).
 //!
 //! This crate is used by [pbf_font_tools](https://github.com/stadiamaps/pbf_font_tools) to generate
 //! SDF glyphs from any FreeType-readable font. If you're looking for a batch generation tool,
@@ -26,6 +26,9 @@ pub use crate::core::*;
 mod error;
 pub use crate::error::SdfGlyphError;
 
+mod types;
+pub use crate::types::*;
+
 #[cfg(feature = "freetype")]
 mod ft;
 
@@ -35,3 +38,19 @@ pub use freetype;
 
 #[cfg(feature = "freetype")]
 pub use crate::ft::*;
+
+// Vector-based SDF via ttf-parser
+#[cfg(feature = "ttf-parser")]
+pub mod outline;
+
+#[cfg(feature = "ttf-parser")]
+mod outline_sdf;
+
+#[cfg(feature = "ttf-parser")]
+mod ttf;
+
+#[cfg(feature = "ttf-parser")]
+pub use ttf_parser;
+
+#[cfg(feature = "ttf-parser")]
+pub use crate::ttf::*;

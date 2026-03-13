@@ -10,6 +10,8 @@
 //! [sdf_glyph_renderer](https://github.com/stadiamaps/sdf_glyph_renderer) for more technical
 //! details on how this works.
 //!
+//! NOTE: The default `bitmap` backend uses FreeType (bundled from source by default).
+//! The `bezier` backend uses a pure Rust font parser and does not require FreeType.
 //! ## Usage
 //!
 //! This tool will create `out_dir` if necessary, and will put each range (of 256 glyphs, for
@@ -18,6 +20,7 @@
 //!
 //! ```
 //! $ build_pbf_glyphs /path/to/font_dir /path/to/out_dir
+//! $ build_pbf_glyphs --backend bezier /path/to/font_dir /path/to/out_dir
 //! ```
 
 use std::collections::HashMap;
@@ -28,8 +31,9 @@ use std::thread;
 use std::time::Instant;
 use tokio::fs::{create_dir_all, File};
 
-use clap::Parser;
+use clap::{Parser, ValueEnum};
 use pbf_font_tools::freetype::{Face, Library};
+use pbf_font_tools::ttf_parser;
 use pbf_font_tools::{get_named_font_stack, glyph_range_for_face, Glyphs};
 use prost::Message;
 use spmc::{channel, Receiver};
@@ -37,6 +41,14 @@ use tokio::io::AsyncWriteExt;
 use tokio::task::spawn_blocking;
 
 static TOTAL_GLYPHS_RENDERED: AtomicUsize = AtomicUsize::new(0);
+
+#[derive(Copy, Clone, Debug, ValueEnum)]
+enum Backend {
+    /// Bitmap-based SDF using FreeType rasterization (default, fast).
+    Bitmap,
+    /// Vector-based SDF using bezier curves from font outlines (higher quality for complex scripts).
+    Bezier,
+}
 
 #[derive(Parser, Debug)]
 #[command(version, author, about)]
@@ -51,6 +63,9 @@ struct Args {
     /// Overwrites existing glyphs. By default, glyph generation will be skipped for any range with a matching file in the output directory. Note that the contents of the file are not inspected; only the name.
     #[arg(long)]
     overwrite: bool,
+    /// SDF generation backend to use.
+    #[arg(long, value_enum, default_value_t = Backend::Bitmap)]
+    backend: Backend,
 }
 
 /// Combines glyphs for all fonts listed in `font_names` in `font_path` into a single stack
@@ -95,12 +110,8 @@ async fn combine_glyphs(font_path: &Path, font_names: &[&str], stack_name: Strin
     );
 }
 
-/// A worker function that converts a font to a set of SDF glyphs.
-///
-/// The glyphs are output as a set of files in a directory where each file contains
-/// exactly 256 glyphs and is named like so: `<base_out_dir>/<font name>/<start>-<end>.pbf`
-/// where the start and end numbers represent the Unicode code point.
-fn render_worker(
+/// A worker function that converts a font to a set of SDF glyphs using FreeType (bitmap backend).
+fn render_worker_bitmap(
     base_out_dir: &Path,
     overwrite: bool,
     radius: usize,
@@ -115,10 +126,6 @@ fn render_worker(
 
         println!("Processing {}", path.display());
 
-        // Load the font once to save useless I/O
-        // FIXME: lib.new_face is called twice for face_index=0
-        //        instead, call it once, create a pre-allocated vector of faces for num_faces count
-        //        add the already open 0th, and add all remaining ones to it
         let face = lib.new_face(&path, 0).expect("Unable to load font");
         let num_faces = face.num_faces() as usize;
         let faces: Vec<Face> = (0..num_faces)
@@ -177,21 +184,118 @@ fn render_worker(
     }
 }
 
+/// A worker function that converts a font to a set of SDF glyphs using ttf-parser (bezier backend).
+fn render_worker_bezier(
+    base_out_dir: &Path,
+    overwrite: bool,
+    radius: usize,
+    cutoff: f64,
+    rx: Receiver<Option<(PathBuf, PathBuf)>>,
+) {
+    use pbf_font_tools::glyph_range_for_face_ttf;
+
+    while let Ok(Some((path, stem))) = rx.recv() {
+        let out_dir = base_out_dir.join(stem.to_str().expect("Unable to extract file stem"));
+        std::fs::create_dir_all(&out_dir).expect("Unable to create output directory");
+
+        println!("Processing {} (bezier)", path.display());
+
+        let font_data = std::fs::read(&path).expect("Unable to read font file");
+        let num_faces = ttf_parser::fonts_in_collection(&font_data).unwrap_or(1);
+
+        let mut start = 0u32;
+        let mut end = 255u32;
+        let mut glyphs_rendered = 0;
+        let mut glyphs_skipped = 0;
+        let path_str = path
+            .to_str()
+            .expect("Unable to convert path to a valid UTF-8 string.");
+
+        while start < 65536 {
+            let glyph_path = out_dir.join(format!("{start}-{end}.pbf"));
+            if !overwrite && glyph_path.exists() {
+                glyphs_skipped += 256;
+            } else {
+                let mut glyphs = Glyphs::default();
+
+                for face_index in 0..num_faces {
+                    match ttf_parser::Face::parse(&font_data, face_index) {
+                        Ok(face) => {
+                            if let Ok(stack) = glyph_range_for_face_ttf(
+                                &face, start, end, 24.0, radius, cutoff,
+                            ) {
+                                glyphs_rendered += stack.glyphs.len();
+                                glyphs.stacks.push(stack);
+                            } else {
+                                println!(
+                                    "ERROR: Failed to render fontstack for face {face_index} in {path_str}",
+                                );
+                            }
+                        }
+                        Err(e) => {
+                            println!(
+                                "ERROR: Failed to parse face {face_index} in {path_str}: {e}",
+                            );
+                        }
+                    }
+                }
+
+                let encoded_bytes = glyphs.encode_to_vec();
+                let mut file = std::fs::File::create(glyph_path).expect("Unable to create file");
+                file.write_all(&encoded_bytes)
+                    .expect("Unable to write to file");
+            }
+
+            start += 256;
+            end += 256;
+        }
+
+        if glyphs_skipped > 0 {
+            println!("Skipped up to {glyphs_skipped} glyphs in {path_str}");
+        }
+        if glyphs_skipped != 65536 {
+            println!(
+                "Found {glyphs_rendered} valid glyphs across {num_faces} face(s) in {path_str}"
+            );
+        }
+
+        TOTAL_GLYPHS_RENDERED.fetch_add(glyphs_rendered, Ordering::Relaxed);
+    }
+}
+
 fn main() {
     let args = Args::parse();
 
     let font_dir = &args.font_dir;
     let out_dir = &args.out_dir;
+    let backend = args.backend;
 
     let (mut tx, rx) = channel();
     let num_threads = thread::available_parallelism().unwrap().get();
-    println!("Starting {num_threads} worker threads...");
+    println!(
+        "Starting {num_threads} worker threads (backend: {})...",
+        match backend {
+            Backend::Bitmap => "bitmap",
+            Backend::Bezier => "bezier",
+        }
+    );
 
     let join_handles: Vec<_> = (0..num_threads)
         .map(|_| {
             let out_dir = out_dir.clone();
             let rx = rx.clone();
-            thread::spawn(move || render_worker(&out_dir, args.overwrite, 8, 0.25, rx))
+            match backend {
+                Backend::Bitmap => {
+                    thread::spawn(move || {
+                        render_worker_bitmap(&out_dir, args.overwrite, 8, 0.25, rx)
+                    })
+                }
+                Backend::Bezier => {
+                    thread::spawn(move || {
+                        render_worker_bezier(&out_dir, args.overwrite, 8, 0.25, rx)
+                    })
+                }
+            }
         })
         .collect();
 
@@ -234,11 +338,6 @@ fn main() {
     }
 
     if let Some(path) = args.combinations_path {
-        // Async code, as necessary. Most of the rest of the code is actually truly blocking
-        // since it's calling C libs or compute-heavy functions. Glyph combination however
-        // happens to actually leverage async I/O, so we fire up a runtime here. It makes
-        // the rest of the code simpler in this case to isolate the async code esp as it isn't
-        // in the normal execution path.
         tokio::runtime::Builder::new_multi_thread()
             .enable_all()
             .build()
