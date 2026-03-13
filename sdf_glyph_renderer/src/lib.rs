@@ -44,9 +44,6 @@ pub use crate::ft::*;
 pub mod outline;
 
 #[cfg(feature = "ttf-parser")]
-mod outline_sdf;
-
-#[cfg(feature = "ttf-parser")]
 mod ttf;
 
 #[cfg(feature = "ttf-parser")]
