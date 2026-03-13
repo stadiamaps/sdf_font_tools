@@ -934,7 +934,7 @@ dependencies = [
 
 [[package]]
 name = "sdf_glyph_renderer"
-version = "2.0.0"
+version = "1.1.0"
 dependencies = [
  "criterion",
  "freetype-rs",
