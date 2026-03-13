@@ -81,7 +81,6 @@ jobs:
           - ubuntu-24.04
           - ubuntu-22.04
           - macos-latest
-          - macos-13
           - macos-14  # M1 CPU
           - windows-latest
           - windows-2022
