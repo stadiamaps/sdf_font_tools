@@ -12,7 +12,8 @@ repository.workspace = true
 license.workspace = true
 
 [features]
-freetype = ["dep:freetype-rs"]
+freetype = ["dep:freetype-rs", "freetype-rs?/bundled"]
+freetype-system = ["dep:freetype-rs"]
 
 [dependencies]
 freetype-rs = { workspace = true, optional = true }

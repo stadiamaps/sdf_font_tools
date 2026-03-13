@@ -13,7 +13,8 @@ license.workspace = true
 
 [features]
 default = ["protoc-vendored"]
-freetype = ["dep:sdf_glyph_renderer"]
+freetype = ["dep:sdf_glyph_renderer", "sdf_glyph_renderer?/freetype"]
+freetype-system = ["dep:sdf_glyph_renderer", "sdf_glyph_renderer?/freetype-system"]
 protoc-from-src = ["dep:protobuf-src"]
 protoc-vendored = ["dep:protoc-bin-vendored"]
 
