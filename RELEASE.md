@@ -12,3 +12,8 @@ Create releases with tags according to the following convention.
 * `sdf-vX.Y.Z` for `sdf_glyph_renderer` releases. Release this before other crates.
 * `tools-vX.Y.Z` for `pbf_font_tools` releases. Release this next.
 * `cli-vX.Y.Z` for `build_pbf_glyphs` releases. Release this last.
+
+Note that you may need to update the root `Cargo.toml` file before release
+if any of the underlying crates had a major version change.
+`cargo-publish` requires an explicit `version` even for workspace dependencies,
+since a `path` can't be pushed to crates.io.
