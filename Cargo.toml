@@ -18,7 +18,7 @@ prost = "0.14.3"
 prost-build = "0.14.3"
 protobuf-src = "2.1.1"
 protoc-bin-vendored = "3.2.0"
-sdf_glyph_renderer = { path = "sdf_glyph_renderer" }
+sdf_glyph_renderer = { version = "1", path = "sdf_glyph_renderer" }
 serde_json = "1.0.149"
 spmc = "0.3.0"
 thiserror = "2.0.18"
