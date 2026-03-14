@@ -104,3 +104,9 @@ jobs:
       - name: Run tests (no freetype)
         run: cargo test --workspace --exclude build_pbf_glyphs --locked
         if: ${{ startsWith(matrix.os, 'windows') }}
+
+      # We've had issues in the past regressing due to the complexity of cargo feature flags.
+      # This makes sure we can build protoc from source.
+      - name: Run tests (protoc-from-source)
+        run: cargo test --workspace --no-default-features --features protoc-from-src,freetype --locked
+        if: ${{ !startsWith(matrix.os, 'windows') }}
