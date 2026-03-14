@@ -13,7 +13,7 @@ jobs:
   msrv:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: taiki-e/install-action@v2
         with:
           tool: cargo-hack
@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Check semver (SDF Glyph Renderer)
         uses: obi1kenobi/cargo-semver-checks-action@v2
@@ -44,7 +44,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - uses: Swatinem/rust-cache@v2
         if: github.event_name != 'release' && github.event_name != 'workflow_dispatch'
@@ -88,7 +88,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - uses: Swatinem/rust-cache@v2
         if: github.event_name != 'release' && github.event_name != 'workflow_dispatch'
@@ -104,3 +104,9 @@ jobs:
       - name: Run tests (no freetype)
         run: cargo test --workspace --exclude build_pbf_glyphs --locked
         if: ${{ startsWith(matrix.os, 'windows') }}
+
+      # We've had issues in the past regressing due to the complexity of cargo feature flags.
+      # This makes sure we can build protoc from source.
+      - name: Run tests (protoc-from-source)
+        run: cargo test --workspace --no-default-features --features protoc-from-src,freetype --locked
+        if: ${{ !startsWith(matrix.os, 'windows') }}
