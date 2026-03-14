@@ -12,7 +12,7 @@ repository.workspace = true
 license.workspace = true
 
 [features]
-default = ["protoc-vendored"]
+default = []
 protoc-from-src = ["pbf_font_tools/protoc-from-src"]
 protoc-vendored = ["pbf_font_tools/protoc-vendored"]
 

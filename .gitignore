@@ -1,4 +1,8 @@
-/target
-.idea
 **/*.rs.bk
 *.iws
+.idea
+fixtures/
+out/
+target/
+temp/
+tmp/

@@ -26,13 +26,13 @@ use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::thread;
 use std::time::Instant;
-use tokio::fs::{create_dir_all, File};
 
 use clap::Parser;
 use pbf_font_tools::freetype::{Face, Library};
 use pbf_font_tools::{get_named_font_stack, glyph_range_for_face, Glyphs};
 use prost::Message;
 use spmc::{channel, Receiver};
+use tokio::fs::{create_dir_all, File};
 use tokio::io::AsyncWriteExt;
 use tokio::task::spawn_blocking;
 
