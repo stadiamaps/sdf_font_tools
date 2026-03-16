@@ -1,6 +1,12 @@
-use std::io::Result;
+fn main() {
+    #[cfg(feature = "force-protobuf-gen")]
+    generate_proto().expect("failed to regenerate protobuf source");
+}
 
-fn main() -> Result<()> {
+#[cfg(feature = "force-protobuf-gen")]
+fn generate_proto() -> std::io::Result<()> {
+    use std::path::Path;
+
     eprintln!(
         "Protobuf features: protoc-from-src: {}, protoc-vendored: {}",
         cfg!(feature = "protoc-from-src"),
@@ -25,6 +31,17 @@ fn main() -> Result<()> {
         );
     }
 
-    prost_build::compile_protos(&["proto/glyphs.proto"], &["proto/"])?;
+    let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR not set");
+    let proto_dir = Path::new(&manifest_dir).join("proto");
+    let proto_file = proto_dir.join("glyphs.proto");
+    // Write the generated .rs file directly into the source tree so it can be vendored in git.
+    // In CI, `git diff --exit-code` detects any drift between the .proto definition and the
+    // committed generated file.
+    let out_dir = Path::new(&manifest_dir).join("src/proto");
+
+    prost_build::Config::new()
+        .out_dir(&out_dir)
+        .compile_protos(&[&proto_file], &[&proto_dir])?;
+
     Ok(())
 }

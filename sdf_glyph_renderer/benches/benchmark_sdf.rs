@@ -1,6 +1,7 @@
+use std::hint::black_box;
+
 use criterion::{criterion_group, criterion_main, Criterion};
 use sdf_glyph_renderer::BitmapGlyph;
-use std::hint::black_box;
 
 pub fn benchmark_sdf(c: &mut Criterion) {
     c.bench_function("benchmark standard sdf gen", |b| {

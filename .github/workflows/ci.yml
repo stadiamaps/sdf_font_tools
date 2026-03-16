@@ -105,8 +105,12 @@ jobs:
         run: cargo test --workspace --exclude build_pbf_glyphs --locked
         if: ${{ startsWith(matrix.os, 'windows') }}
 
-      # We've had issues in the past regressing due to the complexity of cargo feature flags.
-      # This makes sure we can build protoc from source.
-      - name: Run tests (protoc-from-source)
-        run: cargo test --workspace --no-default-features --features protoc-from-src,freetype --locked
-        if: ${{ !startsWith(matrix.os, 'windows') }}
+      # Make sure the vendored protoc-generated file is up to date by only checking it on one platform
+      # We remove the file first to make sure it gets properly regenerated.
+      - if: matrix.os == 'ubuntu-latest'
+        name: Validate vendored file
+        run: |
+          rm pbf_font_tools/src/proto/llmr.glyphs.rs
+          cargo clean
+          cargo build --workspace --features protoc-vendored
+          git diff --exit-code

@@ -12,11 +12,15 @@ repository.workspace = true
 license.workspace = true
 
 [features]
-default = ["protoc-vendored"]
+default = []
 freetype = ["dep:sdf_glyph_renderer", "sdf_glyph_renderer?/freetype"]
 freetype-system = ["dep:sdf_glyph_renderer", "sdf_glyph_renderer?/freetype-system"]
-protoc-from-src = ["dep:protobuf-src"]
-protoc-vendored = ["dep:protoc-bin-vendored"]
+# Regenerate the protobuf source file using protoc, and write it back to the source tree.
+# Combine with protoc-vendored or protoc-from-src to control which protoc binary is used.
+# Without either of those features, protoc must be available in $PATH.
+force-protobuf-gen = ["dep:prost-build"]
+protoc-from-src = ["force-protobuf-gen", "dep:protobuf-src"]
+protoc-vendored = ["force-protobuf-gen", "dep:protoc-bin-vendored"]
 
 [dependencies]
 futures.workspace = true
@@ -29,6 +33,6 @@ tokio.workspace = true
 tokio = { workspace = true, features = ["fs", "io-util", "macros"] }
 
 [build-dependencies]
-prost-build.workspace = true
+prost-build = { workspace = true, optional = true }
 protobuf-src = { workspace = true, optional = true }
 protoc-bin-vendored = { workspace = true, optional = true }
