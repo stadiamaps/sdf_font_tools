@@ -114,3 +114,22 @@ jobs:
           cargo clean
           cargo build --workspace --features protoc-vendored
           git diff --exit-code
+
+  freebsd-test:
+    runs-on: ubuntu-latest
+    name: FreeBSD CI
+    steps:
+      - uses: actions/checkout@v6
+      - name: Test in FreeBSD
+        id: test
+        uses: vmactions/freebsd-vm@v1
+        with:
+          prepare: |
+            pkg install -y rust freetype2
+          run: |
+            # Run tests with freetype
+            cargo test --workspace --features freetype --locked
+            # Run tests in release mode
+            cargo test --workspace --release --features freetype --locked
+          
+
