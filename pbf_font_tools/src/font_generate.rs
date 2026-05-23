@@ -1,19 +1,22 @@
 use std::path::Path;
+use std::sync::Arc;
 
-use sdf_glyph_renderer::{clamp_to_u8, render_sdf_from_face};
+use sdf_glyph_renderer::{clamp_to_u8, FontFace, FontRenderer};
 
 use crate::error::PbfFontError;
-use crate::{freetype, Fontstack, Glyph, Glyphs};
+use crate::{Fontstack, Glyph, Glyphs};
 
 /// Renders a single glyph for the given font face into a Glyph message.
 pub fn render_sdf_glyph(
-    face: &freetype::Face,
+    renderer: &mut FontRenderer,
+    face: &FontFace,
     char_code: u32,
+    size: usize,
     buffer: usize,
     radius: usize,
     cutoff: f64,
 ) -> Result<Glyph, PbfFontError> {
-    let glyph = render_sdf_from_face(face, char_code, buffer, radius)?;
+    let glyph = renderer.render_sdf_from_face(face, char_code, size as f32, buffer, radius)?;
 
     Ok(Glyph {
         id: char_code,
@@ -38,20 +41,16 @@ pub fn render_sdf_glyph(
 /// encoded as a vector of bytes, which have no sign). The value selected must be
 /// between 0 and 1.
 pub fn glyph_range_for_face(
-    face: &freetype::Face,
+    face: &FontFace,
     start: u32,
     end: u32,
     size: usize,
     radius: usize,
     cutoff: f64,
 ) -> Result<Fontstack, PbfFontError> {
-    let Some(mut family_name) = face.family_name() else {
+    let Some(family_name) = face.name() else {
         return Err(PbfFontError::MissingFontFamilyName);
     };
-    if let Some(style_name) = face.style_name() {
-        family_name.push(' ');
-        family_name.push_str(&style_name);
-    }
 
     let mut stack = Fontstack {
         name: family_name,
@@ -59,21 +58,14 @@ pub fn glyph_range_for_face(
         glyphs: Vec::with_capacity((end - start) as usize),
     };
 
-    // FreeType conventions: char width or height of zero means "use the same value"
-    // and setting both resolution values to zero results in the default value
-    // of 72 dpi.
-    //
-    // See https://www.freetype.org/freetype2/docs/reference/ft2-base_interface.html#ft_set_char_size
-    // and https://www.freetype.org/freetype2/docs/tutorial/step1.html for details.
-    face.set_char_size(0, (size << 6) as isize, 0, 0)?;
-
+    let mut renderer = FontRenderer::new();
     for char_code in start..=end {
-        match render_sdf_glyph(face, char_code, 3, radius, cutoff) {
+        match render_sdf_glyph(&mut renderer, face, char_code, size, 3, radius, cutoff) {
             Ok(glyph) => {
                 stack.glyphs.push(glyph);
             }
-            Err(PbfFontError::SdfGlyphError(sdf_glyph_renderer::SdfGlyphError::FreeTypeError(
-                freetype::Error::InvalidGlyphIndex,
+            Err(PbfFontError::SdfGlyphError(sdf_glyph_renderer::SdfGlyphError::MissingGlyph(
+                _,
             ))) => {
                 // Do nothing; not all glyphs will be present in a font.
             }
@@ -94,18 +86,14 @@ pub fn glyph_range_for_font<P: AsRef<Path>>(
     radius: usize,
     cutoff: f64,
 ) -> Result<Glyphs, PbfFontError> {
-    let lib = freetype::Library::init()?;
-    let mut face = lib.new_face(font_path.as_ref(), 0)?;
-    let num_faces = face.num_faces();
+    let data: Arc<[u8]> = std::fs::read(font_path)?.into();
+    let num_faces = FontFace::count(data.as_ref())?;
 
     let mut result = Glyphs::default();
-    result.stacks.reserve(num_faces as usize);
+    result.stacks.reserve(num_faces);
 
     for face_index in 0..num_faces {
-        if face_index > 0 {
-            face = lib.new_face(font_path.as_ref(), face_index as isize)?;
-        }
-
+        let face = FontFace::from_bytes(Arc::clone(&data), face_index)?;
         let stack = glyph_range_for_face(&face, start, end, size, radius, cutoff)?;
         result.stacks.push(stack);
     }

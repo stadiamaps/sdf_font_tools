@@ -18,7 +18,7 @@ protoc-vendored = ["pbf_font_tools/protoc-vendored"]
 
 [dependencies]
 clap.workspace = true
-pbf_font_tools = { workspace = true, features = ["freetype"] }
+pbf_font_tools = { workspace = true, features = ["generate"] }
 prost.workspace = true
 serde_json.workspace = true
 spmc.workspace = true

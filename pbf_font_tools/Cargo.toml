@@ -1,6 +1,6 @@
 [package]
 name = "pbf_font_tools"
-version = "3.1.1"
+version = "4.0.0"
 description = "Tools for working with SDF font glyphs encoded in protobuf format."
 readme = "README.md"
 keywords = ["sdf", "protobuf", "fonts"]
@@ -13,8 +13,7 @@ license.workspace = true
 
 [features]
 default = []
-freetype = ["dep:sdf_glyph_renderer", "sdf_glyph_renderer?/freetype"]
-freetype-system = ["dep:sdf_glyph_renderer", "sdf_glyph_renderer?/freetype-system"]
+generate = ["dep:sdf_glyph_renderer", "sdf_glyph_renderer?/font"]
 # Regenerate the protobuf source file using protoc, and write it back to the source tree.
 # Combine with protoc-vendored or protoc-from-src to control which protoc binary is used.
 # Without either of those features, protoc must be available in $PATH.

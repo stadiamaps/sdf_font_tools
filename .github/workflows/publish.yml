@@ -1,6 +1,6 @@
 on:
   release:
-    types: [published]
+    types: [ published ]
 
 name: Cargo Publish
 
@@ -22,11 +22,11 @@ jobs:
           case "$PREFIX" in
             "sdf")
               CRATE_NAME="sdf_glyph_renderer"
-              FLAGS="--features freetype"
+              FLAGS="--features font"
               ;;
             "tools")
               CRATE_NAME="pbf_font_tools"
-              FLAGS="--features freetype"
+              FLAGS="--features generate"
               ;;
             "cli")
               CRATE_NAME="build_pbf_glyphs"
