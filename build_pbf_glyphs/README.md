@@ -8,7 +8,7 @@ isn't really anything novel; it's just a frontend to
 [pbf_font_tools](../pbf_font_tools) that behaves similar to
 [node-fontnik](https://github.com/mapbox/node-fontnik), but is faster and (in our opinion)
 a bit easier to use since it doesn't depend on node and all its headaches, or C++ libraries
-that need to be built from scratch. FreeType is bundled and compiled from source by default.
+that need to be built from scratch.
 
 Check out
 [sdf_glyph_renderer](https://github.com/stadiamaps/sdf_font_tools/tree/main/sdf_glyph_renderer) for more technical

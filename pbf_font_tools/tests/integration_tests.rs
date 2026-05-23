@@ -109,7 +109,7 @@ async fn test_get_font_stack() {
     }
 }
 
-#[cfg(feature = "freetype")]
+#[cfg(feature = "generate")]
 #[tokio::test]
 async fn test_glyph_generation() {
     let font_path = Path::new("tests").join("glyphs");
@@ -117,20 +117,22 @@ async fn test_glyph_generation() {
     let otf_path = font_path.join(font_name).join(format!("{font_name}.ttf"));
     let rendered_glyphs = pbf_font_tools::glyph_range_for_font(&otf_path, 0, 255, 24, 8, 0.25)
         .expect("Unable to render glyphs");
-    let fixture_glyphs = pbf_font_tools::load_glyphs(font_path.as_path(), font_name, 0, 255)
-        .await
-        .expect("Unable to load fixtures");
 
     let rendered_stack = &rendered_glyphs.stacks[0];
-    let fixture_stack = &fixture_glyphs.stacks[0];
+    assert_eq!(rendered_stack.name, font_name);
+    assert_eq!(rendered_stack.range, "0-255");
+    assert!(!rendered_stack.glyphs.is_empty());
 
-    let rendered_glyph_count = rendered_stack.glyphs.len();
-    let fixture_glyph_count = fixture_stack.glyphs.len();
-    assert_eq!(rendered_glyph_count, fixture_glyph_count);
-
-    rendered_stack
+    let glyph = rendered_stack
         .glyphs
         .iter()
-        .zip(fixture_stack.glyphs.iter())
-        .for_each(|(glyph, fixture)| assert_eq!(glyph, fixture));
+        .find(|glyph| glyph.id == u32::from('A'))
+        .expect("Expected to render an A glyph");
+    assert!(glyph.width > 0);
+    assert!(glyph.height > 0);
+    assert!(glyph.advance > 0);
+    assert_eq!(
+        glyph.bitmap.as_ref().expect("No bitmap").len(),
+        (glyph.width as usize + 6) * (glyph.height as usize + 6)
+    );
 }

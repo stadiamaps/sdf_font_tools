@@ -14,8 +14,8 @@ If you're looking for a CLI tool to generate PBF ranges en masse like
 [node-fontnik](https://github.com/mapbox/node-fontnik)), but faster,
 check out [build_pbf_glyphs](https://github.com/stadiamaps/sdf_font_tools/tree/main/build_pbf_glyphs).
 
-The `freetype` feature (which bundles FreeType from source) is used for glyph generation.
-Use the `freetype-system` feature instead to link against a system-installed FreeType.
+The optional `generate` feature enables glyph generation from source font files.
+Without it, this crate can still load and combine existing PBF glyph ranges.
 
 ## References
 

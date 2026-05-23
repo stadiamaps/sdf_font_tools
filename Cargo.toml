@@ -11,15 +11,15 @@ rust-version = "1.87.0"
 
 [workspace.dependencies]
 clap = { version = "4.5.60", features = ["derive"] }
-freetype-rs = "0.38.0"
 futures = "0.3.32"
-pbf_font_tools = { version = "3", path = "pbf_font_tools", default-features = false }
+pbf_font_tools = { version = "4", path = "pbf_font_tools", default-features = false }
 prost = "0.14.3"
 prost-build = "0.14.3"
 protobuf-src = "2.1.1"
 protoc-bin-vendored = "3.2.0"
-sdf_glyph_renderer = { version = "1", path = "sdf_glyph_renderer" }
+sdf_glyph_renderer = { version = "2", path = "sdf_glyph_renderer" }
 serde_json = "1.0.149"
 spmc = "0.3.0"
+swash = "0.2.7"
 thiserror = "2.0.18"
 tokio = { version = "1.50.0", features = ["rt", "fs", "io-util"] }

@@ -4,7 +4,7 @@
 //! [pbf_font_tools](https://github.com/stadiamaps/pbf_font_tools) that behaves similar to
 //! [node-fontnik](https://github.com/mapbox/node-fontnik), but is faster and (in our opinion)
 //! a bit easier to use since it doesn't depend on node and all its headaches, or C++ libraries
-//! that need to be built from scratch. FreeType is bundled and compiled from source by default.
+//! that need to be built from scratch.
 //!
 //! Check out
 //! [sdf_glyph_renderer](https://github.com/stadiamaps/sdf_glyph_renderer) for more technical
@@ -24,12 +24,12 @@ use std::collections::HashMap;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::Arc;
 use std::thread;
 use std::time::Instant;
 
 use clap::Parser;
-use pbf_font_tools::freetype::{Face, Library};
-use pbf_font_tools::{get_named_font_stack, glyph_range_for_face, Glyphs};
+use pbf_font_tools::{get_named_font_stack, glyph_range_for_face, FontFace, Glyphs};
 use prost::Message;
 use spmc::{channel, Receiver};
 use tokio::fs::{create_dir_all, File};
@@ -107,8 +107,6 @@ fn render_worker(
     cutoff: f64,
     rx: Receiver<Option<(PathBuf, PathBuf)>>,
 ) {
-    let lib = Library::init().expect("Unable to initialize FreeType");
-
     while let Ok(Some((path, stem))) = rx.recv() {
         let out_dir = base_out_dir.join(stem.to_str().expect("Unable to extract file stem"));
         std::fs::create_dir_all(&out_dir).expect("Unable to create output directory");
@@ -116,15 +114,11 @@ fn render_worker(
         println!("Processing {}", path.display());
 
         // Load the font once to save useless I/O
-        // FIXME: lib.new_face is called twice for face_index=0
-        //        instead, call it once, create a pre-allocated vector of faces for num_faces count
-        //        add the already open 0th, and add all remaining ones to it
-        let face = lib.new_face(&path, 0).expect("Unable to load font");
-        let num_faces = face.num_faces() as usize;
-        let faces: Vec<Face> = (0..num_faces)
+        let data: Arc<[u8]> = std::fs::read(&path).expect("Unable to read font").into();
+        let num_faces = FontFace::count(data.as_ref()).expect("Unable to count font faces");
+        let faces: Vec<FontFace> = (0..num_faces)
             .map(|face_index| {
-                lib.new_face(&path, face_index as isize)
-                    .expect("Unable to load face")
+                FontFace::from_bytes(Arc::clone(&data), face_index).expect("Unable to load face")
             })
             .collect();
 

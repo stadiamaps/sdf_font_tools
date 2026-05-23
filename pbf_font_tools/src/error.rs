@@ -4,14 +4,11 @@ pub enum PbfFontError {
     JoinError(#[from] tokio::task::JoinError),
     #[error("Protobuf decoding error: {0}")]
     ProtobufError(#[from] prost::DecodeError),
-    #[cfg(feature = "freetype")]
+    #[cfg(feature = "generate")]
     #[error("SDF glyph error: {0}")]
     SdfGlyphError(#[from] sdf_glyph_renderer::SdfGlyphError),
     #[error("Font family name is not set")]
     MissingFontFamilyName,
-    #[cfg(feature = "freetype")]
-    #[error("Freetype error: {0}")]
-    FreetypeError(#[from] crate::freetype::Error),
     #[error(transparent)]
     IoError(#[from] std::io::Error),
 }
